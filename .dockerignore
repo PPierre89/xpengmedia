@@ -1,0 +1,35 @@
+# Fichiers inutiles à la construction de l'image (image plus légère + build plus rapide)
+.git
+.github
+node_modules
+dist
+.env
+.env.local
+*.md
+
+# Scripts de maintenance one-shot (non nécessaires au build)
+audit-*.cjs
+fix-*.cjs
+replace-*.cjs
+force-*.cjs
+merge-categories.cjs
+refactor-categories.cjs
+cleanup-non-web-services.cjs
+*.ps1
+audit-report.json
+broken-logos-report.json
+coherence-report.json
+
+# Déploiements alternatifs (cloud) : sans objet pour l'auto-hébergement
+api
+netlify
+vercel.json
+netlify.toml
+wrangler.toml
+cloudflare-worker-proxy.js
+vercel-proxy.js
+
+# Docker lui-même
+Dockerfile
+.dockerignore
+docker-compose*.yml

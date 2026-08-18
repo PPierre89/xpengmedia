@@ -442,6 +442,36 @@ npm run deploy
 
 ---
 
+## 🏠 Auto-hébergement (NAS UGREEN, Docker, Raspberry Pi)
+
+**Le déploiement le plus simple : un seul fichier `docker-compose.yml`.**
+
+```bash
+docker compose up -d      # puis http://IP-DU-NAS:8080
+```
+
+L'image embarque l'application **et** un proxy IPTV local sur la même origine :
+plus aucune erreur CORS, plus aucun proxy public à configurer — le player IPTV
+le détecte automatiquement.
+
+📖 **Guide pas à pas pour NAS UGREEN DXP4800 Plus (UGOS Pro) : [DEPLOY-NAS-UGREEN.md](DEPLOY-NAS-UGREEN.md)**
+
+Sans Docker :
+
+```bash
+npm ci --legacy-peer-deps
+npm run serve             # compile puis sert sur http://localhost:8080
+```
+
+| | Rôle |
+|---|---|
+| `Dockerfile` | Image tout-en-un (build React + serveur Node sans dépendance) |
+| `docker-compose.yml` | Déploiement depuis l'image publiée (le plus simple) |
+| `docker-compose.build.yml` | Déploiement en compilant depuis les sources |
+| `server/server.js` | Serveur statique + proxy CORS `/api/proxy` |
+
+---
+
 ## 📂 Structure du projet
 
 ```

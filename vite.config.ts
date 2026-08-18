@@ -2,10 +2,15 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
+// Chemin de base :
+//  - GitHub Pages  -> '/xpengmedia/' (valeur par défaut)
+//  - Auto-hébergé (NAS UGREEN, Docker, local) -> '/' via BASE_PATH=/
+const base = process.env.BASE_PATH || '/xpengmedia/';
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: '/xpengmedia/',
+  base,
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
