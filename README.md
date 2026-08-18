@@ -4,13 +4,13 @@
 
 ### *Le centre multimédia intelligent pour votre XPENG*
 
-[![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-XPENG_Media_Hub-00D9FF?style=for-the-badge&logo=google-chrome&logoColor=white)](https://dlnraja.github.io/xpengmedia/)
-[![GitHub Pages](https://img.shields.io/badge/GitHub_Pages-Deployed-success?style=for-the-badge&logo=github)](https://dlnraja.github.io/xpengmedia/)
+[![Auto-hébergement](https://img.shields.io/badge/🏠_Auto--hébergé-Docker_/_NAS-2496ED?style=for-the-badge&logo=docker&logoColor=white)](DEPLOY-NAS-UGREEN.md)
+[![Image](https://img.shields.io/badge/ghcr.io-xpengmedia-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/PPierre89/xpengmedia/pkgs/container/xpengmedia)
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 
-**[🚀 Démo en direct](https://dlnraja.github.io/xpengmedia/)** • **[📖 Documentation](#-documentation-complète)** • **[🐛 Signaler un bug](https://github.com/dlnraja/xpengmedia/issues)**
+**[🏠 Déployer sur ton NAS](DEPLOY-NAS-UGREEN.md)** • **[📖 Documentation](#-documentation)** • **[🐛 Signaler un bug](https://github.com/PPierre89/xpengmedia/issues)**
 
 ---
 
@@ -399,7 +399,7 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 ### **Outils**
 - **ESLint** - Linting code
 - **PostCSS** - Transformation CSS
-- **gh-pages** - Déploiement automatique
+- **Docker** - Image d'auto-hébergement publiée sur GHCR
 
 ---
 
@@ -414,7 +414,7 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 
 ```bash
 # 1. Cloner le dépôt
-git clone https://github.com/dlnraja/xpengmedia.git
+git clone https://github.com/PPierre89/xpengmedia.git
 cd xpengmedia
 
 # 2. Installer les dépendances
@@ -436,8 +436,8 @@ npm run build
 # Prévisualiser le build
 npm run preview
 
-# Déployer sur GitHub Pages
-npm run deploy
+# Compiler puis servir avec le serveur d'auto-hébergement
+npm run serve
 ```
 
 ---
@@ -476,36 +476,43 @@ npm run serve             # compile puis sert sur http://localhost:8080
 
 ```
 xpengmedia/
-├── public/                  # Fichiers statiques
+├── server/
+│   ├── server.js            # Serveur tout-en-un : app + proxy IPTV (zéro dépendance)
+│   └── security.test.mjs    # Tests des protections du proxy
+├── public/                  # Fichiers statiques (dont iptv-player.html)
 ├── src/
-│   ├── components/         # Composants React
-│   │   ├── favorites/      # Gestion des favoris
-│   │   ├── icons/          # PlatformIcon
-│   │   ├── locale/         # LocaleSelector
-│   │   ├── modals/         # Modales
-│   │   ├── platforms/      # EditablePlatformCard
-│   │   └── ui/             # Composants UI
-│   ├── context/            # React Context
-│   │   ├── FavoritesContext.tsx
-│   │   ├── LocaleContext.tsx
-│   │   └── ThemeContext.tsx
-│   ├── data/
-│   │   ├── platforms.ts    # 214 services
-│   │   └── regionsMetadata.ts  # Métadonnées régions
-│   ├── hooks/              # Custom hooks
-│   │   └── useSmartFavorites.ts
-│   ├── pages/              # Pages
-│   │   └── HomePage.tsx
+│   ├── components/          # Composants React (favorites, icons, locale, modals…)
+│   ├── context/             # React Context (Favorites, Locale, Theme)
+│   ├── data/                # platforms.ts (214 services), regionsMetadata.ts
+│   ├── hooks/               # Custom hooks
+│   ├── pages/               # Pages de l'application
 │   ├── App.tsx
-│   ├── main.tsx
-│   └── index.css
-├── REGIONAL_SYSTEM.md      # Doc système régional
-├── LOGOS_GUIDE.md          # Guide logos
-├── README.md               # Ce fichier
+│   └── main.tsx
+├── docs/                    # Documentation des systèmes (régions, langues, logos)
+│   └── archive/             # Documentation historique — ne plus suivre
+├── Dockerfile               # Image tout-en-un pour l'auto-hébergement
+├── docker-compose.yml       # Déploiement depuis l'image publiée (le plus simple)
+├── docker-compose.build.yml # Déploiement en compilant depuis les sources
+├── DEPLOY-NAS-UGREEN.md     # Guide de déploiement sur NAS UGREEN
+├── README.md                # Ce fichier
 ├── package.json
 ├── vite.config.ts
 └── tailwind.config.js
 ```
+
+---
+
+## 📖 Documentation
+
+| Document | Contenu |
+|---|---|
+| **[DEPLOY-NAS-UGREEN.md](DEPLOY-NAS-UGREEN.md)** | Déploiement auto-hébergé pas à pas (NAS UGREEN, Docker), variables d'environnement, modèle de sécurité du proxy, dépannage |
+| [docs/REGIONAL_SYSTEM.md](docs/REGIONAL_SYSTEM.md) | Système de régionalisation dynamique |
+| [docs/LOCALE_SYSTEM.md](docs/LOCALE_SYSTEM.md) | Système de localisation et de traduction |
+| [docs/LOGOS_GUIDE.md](docs/LOGOS_GUIDE.md) • [docs/LOGOS_COULEUR.md](docs/LOGOS_COULEUR.md) • [docs/LOGOS_MAPPING.md](docs/LOGOS_MAPPING.md) | Gestion des logos de services |
+| [docs/DEBUG_LOCALE.md](docs/DEBUG_LOCALE.md) | Notes de débogage du changement de langue |
+| [docs/ENRICHMENT_PLAN.md](docs/ENRICHMENT_PLAN.md) • [docs/S3XYTHEATER_ANALYSIS.md](docs/S3XYTHEATER_ANALYSIS.md) | Analyses et pistes d'enrichissement du catalogue |
+| [docs/archive/](docs/archive/) | 📦 Documentation historique (proxies cloud Vercel/Netlify/Cloudflare). **Périmée** : le proxy local la remplace entièrement |
 
 ---
 
@@ -537,6 +544,31 @@ xpengmedia/
 ---
 
 ## 📝 Changelog
+
+### **v2.2.0** — 2026-08-18 🏠 Auto-hébergement
+
+#### 🆕 Nouvelles fonctionnalités
+- **Serveur tout-en-un** (`server/server.js`, zéro dépendance npm) : sert l'application compilée **et** un proxy IPTV sur `/api/proxy`, depuis la même origine
+- **Image Docker** publiée sur GHCR (`ghcr.io/ppierre89/xpengmedia`), déployable sur NAS UGREEN en un `docker compose up`
+- **Détection automatique du proxy local** par le player IPTV : plus aucun proxy public à configurer quand l'app est auto-hébergée
+- **Réécriture des playlists HLS** : les segments passent aussi par le proxy local, ce qui corrige les `manifestLoadError`
+- **`BASE_PATH`** : chemin de base configurable (`/` par défaut, à changer seulement si un reverse proxy impose un sous-chemin)
+
+#### 🔒 Sécurité
+- Protection SSRF du proxy : réseau privé refusé par défaut, y compris sous les formes IPv6 encapsulant une IPv4 (`::ffff:`, `::a.b.c.d`, NAT64, 6to4)
+- Chaque redirection est re-validée et la connexion est épinglée à l'adresse vérifiée (pas de DNS rebinding)
+- Aucun contenu actif renvoyé par le proxy : type MIME sur liste blanche, `nosniff`, CSP `sandbox`
+- Aucun en-tête CORS par défaut (l'application est same-origin)
+- Identifiants IPTV réels retirés de la documentation
+
+#### 🗑️ Retiré
+- **Backends Vercel, Netlify et Cloudflare** : le proxy local les remplace intégralement
+- **Proxies CORS publics** : plus aucun flux ni identifiant ne transite par un tiers
+- **Déploiement GitHub Pages** : l'application n'est plus publiée en ligne, elle est auto-hébergée
+
+#### 📚 Documentation
+- **DEPLOY-NAS-UGREEN.md** : guide de déploiement complet
+- Documentation réorganisée : `docs/` pour les systèmes, `docs/archive/` pour l'historique périmé
 
 ### **v2.1.0** - 2025-01-12 ✨ Régionalisation & Logos
 
@@ -586,7 +618,7 @@ Les contributions sont les bienvenues !
 3. Créez une Pull Request
 
 ### **Signaler un bug**
-- [Créer une issue](https://github.com/dlnraja/xpengmedia/issues)
+- [Créer une issue](https://github.com/PPierre89/xpengmedia/issues)
 
 ---
 
@@ -596,13 +628,15 @@ Ce projet est sous licence **MIT**.
 
 ---
 
-## 👨‍💻 Auteur
+## 👨‍💻 Auteurs
 
-**dlnraja**
+**Projet d'origine — [@dlnraja](https://github.com/dlnraja)**
+- Dépôt amont : [dlnraja/xpengmedia](https://github.com/dlnraja/xpengmedia)
 
-- GitHub: [@dlnraja](https://github.com/dlnraja)
-- Projet: [XPENG Media Hub](https://github.com/dlnraja/xpengmedia)
-- Demo: [https://dlnraja.github.io/xpengmedia/](https://dlnraja.github.io/xpengmedia/)
+**Ce fork — [@PPierre89](https://github.com/PPierre89)**
+- Dépôt : [PPierre89/xpengmedia](https://github.com/PPierre89/xpengmedia)
+- Ajouts : auto-hébergement Docker/NAS avec proxy IPTV local, durcissement de sécurité du proxy
+- Déploiement : auto-hébergé, image `ghcr.io/ppierre89/xpengmedia`
 
 ---
 
@@ -620,7 +654,7 @@ Ce projet est sous licence **MIT**.
 
 **Fait avec 💙 pour les conducteurs XPENG 🚗**
 
-[![GitHub stars](https://img.shields.io/github/stars/dlnraja/xpengmedia?style=social)](https://github.com/dlnraja/xpengmedia/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/PPierre89/xpengmedia?style=social)](https://github.com/PPierre89/xpengmedia/stargazers)
 
 [⬆ Retour en haut](#-xpeng-media-hub-)
 

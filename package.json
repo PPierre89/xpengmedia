@@ -3,20 +3,16 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://dlnraja.github.io/xpengmedia",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && node -e \"require('fs').copyFileSync('public/iptv-player.html', 'dist/iptv-player.html')\"",
-    "build:selfhosted": "BASE_PATH=/ npm run build",
     "start": "node server/server.js",
-    "serve": "npm run build:selfhosted && npm start",
+    "serve": "npm run build && npm start",
     "docker:build": "docker build -t xpengmedia:local .",
     "docker:up": "docker compose -f docker-compose.build.yml up -d --build",
     "test:security": "node --test server/security.test.mjs",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
@@ -42,7 +38,6 @@
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.24",
-    "gh-pages": "^6.3.0",
     "globals": "^16.5.0",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.13",

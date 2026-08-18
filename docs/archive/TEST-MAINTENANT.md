@@ -62,8 +62,8 @@ https://dlnraja.github.io/xpengmedia/iptv-player.html?debug=1&v=20241118114
 2. Active le panneau debug (icône 🐛)
 3. Clique sur "Xtream Codes"
 4. Entre tes identifiants :
-   - Serveur : `http://line.trx-ott.com`
-   - Username : `0fee8b0c7f`
+   - Serveur : `http://mon-serveur-iptv.com`
+   - Username : `UTILISATEUR`
    - Password : `************`
 5. Clique "Se connecter"
 
@@ -157,7 +157,7 @@ https://dlnraja.github.io/xpengmedia/iptv-player.html?debug=1&v=20241118114
 
 ## 📊 Performances Attendues
 
-### Avec ton catalogue `line.trx-ott.com`
+### Avec ton catalogue `mon-serveur-iptv.com`
 
 | Action | Temps attendu | Avant |
 |--------|---------------|-------|

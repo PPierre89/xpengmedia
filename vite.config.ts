@@ -2,10 +2,10 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
-// Chemin de base :
-//  - GitHub Pages  -> '/xpengmedia/' (valeur par défaut)
-//  - Auto-hébergé (NAS UGREEN, Docker, local) -> '/' via BASE_PATH=/
-const base = process.env.BASE_PATH || '/xpengmedia/';
+// L'application est servie à la racine du domaine par le serveur
+// d'auto-hébergement (server/server.js). BASE_PATH permet de la servir depuis
+// un sous-chemin si un reverse proxy l'impose.
+const base = process.env.BASE_PATH || '/';
 
 // https://vitejs.dev/config/
 export default defineConfig({

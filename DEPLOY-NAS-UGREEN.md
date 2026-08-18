@@ -97,22 +97,23 @@ Exemple, playlist hébergée sur le NAS lui-même :
 
 ---
 
-## 📺 Pourquoi c'est mieux que la version en ligne
+## 📺 Pourquoi le proxy local change tout
 
 Le player IPTV détecte **tout seul** qu'il tourne sur ton NAS (via `/healthz`) et bascule
-sur le proxy local. Concrètement :
+sur le proxy local. C'est ce qui a permis de supprimer tout le reste :
 
-| | GitHub Pages | Auto-hébergé sur le NAS |
+| | Avant (proxies distants) | Auto-hébergé sur le NAS |
 |---|---|---|
-| Proxy CORS | proxies publics (corsproxy.io, codetabs…) | ton NAS, même origine |
-| Quotas / limites | oui, variables | aucune |
-| Vie privée | tes flux transitent par des tiers | tout reste chez toi |
+| Proxy CORS | proxies publics, ou un backend à déployer chez Vercel/Netlify/Cloudflare | ton NAS, même origine |
+| Quotas / limites | oui, variables, et pannes fréquentes | aucune |
+| Vie privée | tes flux et tes identifiants transitent par des tiers | tout reste chez toi |
 | Segments HLS (.ts) | souvent bloqués | réécrits et relayés automatiquement |
 | Vitesse | dépend du proxy public | débit de ton NAS |
 | Configuration | coller des URLs de proxy dans le code | **rien à faire** |
 
 Aucune configuration manuelle : si `/healthz` répond, le proxy local est utilisé en
-priorité 0 ; sinon le player retombe sur son comportement habituel.
+priorité 0. **Il n'y a volontairement aucun repli sur un proxy public** — mieux vaut une
+erreur explicite que de laisser des identifiants IPTV transiter par un service inconnu.
 
 ---
 

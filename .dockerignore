@@ -6,6 +6,7 @@ dist
 .env
 .env.local
 *.md
+docs
 
 # Scripts de maintenance one-shot (non nécessaires au build)
 audit-*.cjs
@@ -20,14 +21,6 @@ audit-report.json
 broken-logos-report.json
 coherence-report.json
 
-# Déploiements alternatifs (cloud) : sans objet pour l'auto-hébergement
-api
-netlify
-vercel.json
-netlify.toml
-wrangler.toml
-cloudflare-worker-proxy.js
-vercel-proxy.js
 
 # Docker lui-même
 Dockerfile

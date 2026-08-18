@@ -1,11 +1,11 @@
-# 🧪 TESTS ET CORRECTIONS AVEC line.trx-ott.com
+# 🧪 TESTS ET CORRECTIONS AVEC mon-serveur-iptv.com
 
 ## 📊 Tests Effectués (18 Nov 2025 - 17:05)
 
 ### Serveur Testé
-- **URL** : `http://line.trx-ott.com`
-- **Username** : `0fee8b0c7f`
-- **Password** : `54f6537c57e3`
+- **URL** : `http://mon-serveur-iptv.com`
+- **Username** : `UTILISATEUR`
+- **Password** : `MOT_DE_PASSE`
 - **Nombre de chaînes** : **48 903** (énorme catalogue !)
 
 ---
@@ -76,7 +76,7 @@ proxies.push(
 **Après** : **200 chaînes par page**
 
 **Pourquoi** :
-- Le serveur `line.trx-ott.com` a **48 903 chaînes** !
+- Le serveur `mon-serveur-iptv.com` a **48 903 chaînes** !
 - Avec 100/page = 489 pages (impossible à naviguer)
 - Avec 200/page = 245 pages (plus gérable)
 
@@ -134,9 +134,9 @@ proxies.push(
 
 1. **Va sur** : `https://dlnraja.github.io/xpengmedia/iptv-player.html?debug=1&v=18nov17h`
 2. **Connecte-toi avec** :
-   - Serveur : `http://line.trx-ott.com`
-   - Username : `0fee8b0c7f`
-   - Password : `54f6537c57e3`
+   - Serveur : `http://mon-serveur-iptv.com`
+   - Username : `UTILISATEUR`
+   - Password : `MOT_DE_PASSE`
 3. **Observe les logs**
 
 ### Résultat Attendu

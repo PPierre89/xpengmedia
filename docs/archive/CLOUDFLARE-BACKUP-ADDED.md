@@ -55,7 +55,7 @@ Si TOUS les proxies échouent, le player essaiera en direct (risque CORS mais ch
 
 ### Test Flux Vidéo :
 **Canal testé** : `EN| CHRISTMAS 1 4K`
-**URL** : `http://line.trx-ott.com/live/0fee8b0c7f/54f6537c57e3/978715.m3u8`
+**URL** : `http://mon-serveur-iptv.com/live/UTILISATEUR/MOT_DE_PASSE/978715.m3u8`
 
 **Résultats** :
 - ❌ corsproxy.io → 403 Forbidden (pour les flux vidéo)
@@ -70,12 +70,12 @@ Si TOUS les proxies échouent, le player essaiera en direct (risque CORS mais ch
 
 ### Logs Améliorés pour les Flux :
 ```
-🔗 URL originale: http://line.trx-ott.com/live/.../978715.m3u8
+🔗 URL originale: http://mon-serveur-iptv.com/live/.../978715.m3u8
 ⚠️ Mixed content détecté (HTTPS→HTTP), activation du proxy de streaming
 💾 URL originale sauvegardée pour retry automatique
 🔄 Proxy sélectionné: Cloudflare Trace
-🔄 URL proxifiée: https://1.1.1.1/cdn-cgi/trace?url=http%3A%2F%2Fline.trx-ott.com%2Flive%2F...
-📊 Proxy encode: http%3A%2F%2Fline.trx-ott.com%2Flive%2F0fee8b0c7f%2F54f6537c57e3%2F978715.m3u8
+🔄 URL proxifiée: https://1.1.1.1/cdn-cgi/trace?url=http%3A%2F%2Fmon-serveur-iptv.com%2Flive%2F...
+📊 Proxy encode: http%3A%2F%2Fmon-serveur-iptv.com%2Flive%2FUTILISATEUR%2FMOT_DE_PASSE%2F978715.m3u8
 🔄 Flux proxifié via Cloudflare Trace
 📈 Tentative proxy n°1
 ```
@@ -147,9 +147,9 @@ corsproxy.io → ❌ Échec (flux vidéo)
 **URL** : `https://dlnraja.github.io/xpengmedia/iptv-player.html?debug=1&v=18nov17h15`
 
 **Avec** :
-- Server: `http://line.trx-ott.com`
-- Username: `0fee8b0c7f`
-- Password: `54f6537c57e3`
+- Server: `http://mon-serveur-iptv.com`
+- Username: `UTILISATEUR`
+- Password: `MOT_DE_PASSE`
 
 **Observe les logs** :
 - ✅ Pour l'API, tu verras : "Connexion via corsproxy.io réussie"
