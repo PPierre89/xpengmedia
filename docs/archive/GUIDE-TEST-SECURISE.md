@@ -16,7 +16,7 @@ Une fois que tu me donnes ton password, lance :
 ```powershell
 cd "C:\Users\HP\Desktop\homey app\xpengmedia"
 
-.\test-xtream.ps1 -Server "http://line.trx-ott.com" -Username "0fee8b0c7f" -Password "TON_PASSWORD"
+.\test-xtream.ps1 -Server "http://mon-serveur-iptv.com" -Username "UTILISATEUR" -Password "TON_PASSWORD"
 ```
 
 **Remplace `TON_PASSWORD` par ton vrai password !**

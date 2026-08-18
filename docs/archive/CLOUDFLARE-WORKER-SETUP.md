@@ -70,7 +70,7 @@ Puis commit + push + deploy comme d'habitude.
 Tu peux tester si le worker fonctionne en allant sur :
 
 ```
-https://xpengmedia-iptv-proxy.VOTRE-ID.workers.dev/?url=http://line.trx-ott.com/player_api.php?username=0fee8b0c7f&password=TON-PASSWORD&action=get_live_streams
+https://xpengmedia-iptv-proxy.VOTRE-ID.workers.dev/?url=http://mon-serveur-iptv.com/player_api.php?username=UTILISATEUR&password=TON-PASSWORD&action=get_live_streams
 ```
 
 → Tu devrais voir du JSON avec la liste des chaînes !

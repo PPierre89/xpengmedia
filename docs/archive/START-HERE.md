@@ -19,8 +19,8 @@ https://dlnraja.github.io/xpengmedia/iptv-player.html?debug=1&v=20241118125
 
 ### 2️⃣ Connecte-toi avec Xtream
 
-- **Serveur** : `http://line.trx-ott.com`
-- **Username** : `0fee8b0c7f`
+- **Serveur** : `http://mon-serveur-iptv.com`
+- **Username** : `UTILISATEUR`
 - **Password** : Ton password
 
 ### 3️⃣ Clique sur "FR| TF1 FHD"

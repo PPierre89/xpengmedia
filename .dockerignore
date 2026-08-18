@@ -6,6 +6,7 @@ dist
 .env
 .env.local
 *.md
+docs
 
 # Scripts de maintenance one-shot (non nécessaires au build)
 audit-*.cjs

@@ -13,9 +13,9 @@ D'après tes screenshots, la **connexion Xtream fonctionne** (la liste des chaî
 - ✅ **API Xtream** : Fonctionne (via proxy CORS)
 - ❌ **URLs de streaming** : Bloquées (CORS/Mixed Content)
 
-Les URLs de streaming (`http://line.trx-ott.com/live/.../123.m3u8`) sont **bloquées par le navigateur** car :
+Les URLs de streaming (`http://mon-serveur-iptv.com/live/.../123.m3u8`) sont **bloquées par le navigateur** car :
 1. Tu es sur une page HTTPS (`dlnraja.github.io`)
-2. Les flux sont en HTTP (`line.trx-ott.com`)
+2. Les flux sont en HTTP (`mon-serveur-iptv.com`)
 3. Le navigateur refuse ce "Mixed Content"
 
 ---
@@ -125,8 +125,8 @@ https://dlnraja.github.io/xpengmedia/iptv-player.html?debug=1&v=20241118122
 ### Scénario de Test
 
 1. **Connecte-toi avec Xtream** :
-   - Serveur : `http://line.trx-ott.com`
-   - Username : `0fee8b0c7f`
+   - Serveur : `http://mon-serveur-iptv.com`
+   - Username : `UTILISATEUR`
    - Password : `************`
 
 2. **Observe les logs** :
@@ -140,10 +140,10 @@ https://dlnraja.github.io/xpengmedia/iptv-player.html?debug=1&v=20241118122
 3. **Clique sur une chaîne** (par ex: "FR| TF1 FHD") :
    ```
    🎬 Lecture de: FR| TF1 FHD
-   🔗 URL originale: http://line.trx-ott.com/live/.../123.m3u8
+   🔗 URL originale: http://mon-serveur-iptv.com/live/.../123.m3u8
    ⚠️ Mixed content détecté (HTTPS→HTTP)
    🔄 Proxy utilisé: celui de l'API
-   🔄 URL proxifiée: https://corsproxy.io/?http%3A%2F%2Fline.trx-ott.com%2F...
+   🔄 URL proxifiée: https://corsproxy.io/?http%3A%2F%2Fmon-serveur-iptv.com%2F...
    🔄 Flux proxifié pour contourner les restrictions CORS/HTTPS
    📡 Format détecté: HLS (M3U8)
    ✅ Support HLS natif du navigateur

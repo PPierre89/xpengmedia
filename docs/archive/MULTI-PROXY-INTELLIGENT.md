@@ -167,7 +167,7 @@ hls.on(Hls.Events.ERROR, (event, data) => {
 
 ### Premier lancement (proxy API réutilisé)
 ```
-🔗 URL originale: http://line.trx-ott.com/live/.../123.m3u8
+🔗 URL originale: http://mon-serveur-iptv.com/live/.../123.m3u8
 ⚠️ Mixed content détecté (HTTPS→HTTP)
 🔄 Utilisation du proxy de l'API: corsproxy.io
 🔄 URL proxifiée: https://corsproxy.io/?http%3A%2F%2F...
@@ -179,7 +179,7 @@ hls.on(Hls.Events.ERROR, (event, data) => {
 
 ### Échec + Retry automatique
 ```
-🔗 URL originale: http://line.trx-ott.com/live/.../123.m3u8
+🔗 URL originale: http://mon-serveur-iptv.com/live/.../123.m3u8
 ⚠️ Mixed content détecté (HTTPS→HTTP)
 🔄 Proxy sélectionné: corsproxy.io
 ❌ Erreur HLS fatale: NETWORK_ERROR - manifestLoadError

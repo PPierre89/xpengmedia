@@ -49,7 +49,7 @@ Le player teste maintenant **AUTOMATIQUEMENT** si chaque flux vidéo est accessi
 ✅ Flux accessible (status: 200)
 ✅ Flux accessible en DIRECT !
 🎯 Pas besoin de proxy
-🔗 URL directe: http://line.trx-ott.com/live/...
+🔗 URL directe: http://mon-serveur-iptv.com/live/...
 📺 HLS attaché au player
 ✅ Manifest parsé: 3 qualités disponibles
 ✅ LECTURE EN COURS !
@@ -69,8 +69,8 @@ Le player teste maintenant **AUTOMATIQUEMENT** si chaque flux vidéo est accessi
 🧠 Proxy flux en cache trouvé: corsproxy.io
 ⏰ Cache valide encore 25 minutes
 🔄 Proxy sélectionné: corsproxy.io
-🔄 URL proxifiée: https://corsproxy.io/?http%3A%2F%2Fline.trx-ott.com%2Flive%2F...
-🧠 Proxy mémorisé pour les flux de line.trx-ott.com
+🔄 URL proxifiée: https://corsproxy.io/?http%3A%2F%2Fmon-serveur-iptv.com%2Flive%2F...
+🧠 Proxy mémorisé pour les flux de mon-serveur-iptv.com
 📺 HLS attaché au player
 ✅ Manifest parsé: 1 qualité disponible
 ✅ LECTURE EN COURS !
@@ -101,7 +101,7 @@ Le player teste maintenant **AUTOMATIQUEMENT** si chaque flux vidéo est accessi
 ### Cache API (par serveur - 1h)
 ```javascript
 proxyCache = {
-  "http://line.trx-ott.com": {
+  "http://mon-serveur-iptv.com": {
     proxy: "corsproxy.io",
     timestamp: ...,
     success: true
@@ -112,9 +112,9 @@ proxyCache = {
 ### Cache Flux Vidéo (par serveur - 30min)
 ```javascript
 streamProxyCache = {
-  "http://line.trx-ott.com": {
+  "http://mon-serveur-iptv.com": {
     proxy: "corsproxy.io",
-    testedWith: "http://line.trx-ott.com/live/.../978715.m3u8",
+    testedWith: "http://mon-serveur-iptv.com/live/.../978715.m3u8",
     timestamp: ...
   }
 }
@@ -379,7 +379,7 @@ https://dlnraja.github.io/xpengmedia/iptv-player.html?debug=1&v=18nov18h
 ✅ Flux accessible (status: 200)
 ✅ Flux accessible en DIRECT !
 🎯 Pas besoin de proxy
-🔗 URL directe: http://line.trx-ott.com/live/0fee8b0c7f/54f6537c57e3/12345.m3u8
+🔗 URL directe: http://mon-serveur-iptv.com/live/UTILISATEUR/MOT_DE_PASSE/12345.m3u8
 📺 HLS attaché au player
 ✅ Manifest parsé: 3 qualités disponibles
 ✅ Lecture vidéo démarrée !
@@ -399,7 +399,7 @@ https://dlnraja.github.io/xpengmedia/iptv-player.html?debug=1&v=18nov18h
 🧠 Proxy flux en cache trouvé: corsproxy.io
 ⏰ Cache valide encore 25 minutes
 🔄 Proxy sélectionné: corsproxy.io
-🔄 URL proxifiée: https://corsproxy.io/?http%3A%2F%2Fline.trx-ott.com%2F...
+🔄 URL proxifiée: https://corsproxy.io/?http%3A%2F%2Fmon-serveur-iptv.com%2F...
 📺 HLS attaché au player
 ❌ Erreur HLS fatale: NETWORK_ERROR - manifestLoadError
 🔄 Erreur de chargement détectée, tentative avec proxy suivant...
@@ -411,7 +411,7 @@ https://dlnraja.github.io/xpengmedia/iptv-player.html?debug=1&v=18nov18h
 🧪 Test du proxy: api.codetabs.com...
 🔄 Proxy sélectionné: api.codetabs.com
 🔄 URL proxifiée: https://api.codetabs.com/v1/proxy?quest=http%3A%2F%2Fline...
-🧠 Proxy mémorisé pour les flux de line.trx-ott.com
+🧠 Proxy mémorisé pour les flux de mon-serveur-iptv.com
 📺 HLS attaché au player
 ✅ Manifest parsé: 1 qualité disponible
 ✅ Lecture vidéo démarrée !

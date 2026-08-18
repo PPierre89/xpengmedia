@@ -45,7 +45,7 @@ Le système mémorise **quel proxy marche avec quel serveur** :
 ```javascript
 // Exemple de cache :
 {
-  "http://line.trx-ott.com": {
+  "http://mon-serveur-iptv.com": {
     proxy: "corsproxy.io",
     timestamp: 1700000000000,
     success: true
@@ -91,7 +91,7 @@ Le système mémorise **quel proxy marche avec quel serveur** :
 🌐 Test proxy: corsproxy.io...
 ✅ Connexion via corsproxy.io réussie
 💾 Proxy mémorisé pour les streams: corsproxy.io
-🧠 Ce proxy sera utilisé en priorité pour line.trx-ott.com
+🧠 Ce proxy sera utilisé en priorité pour mon-serveur-iptv.com
 ```
 
 ### Connexions Suivantes (Optimisé) :
@@ -108,7 +108,7 @@ Le système mémorise **quel proxy marche avec quel serveur** :
 ## 🌍 COMPATIBILITÉ UNIVERSELLE
 
 ### Serveurs Testés :
-- ✅ **line.trx-ott.com** (48 903 chaînes)
+- ✅ **mon-serveur-iptv.com** (48 903 chaînes)
 - ✅ Tous serveurs HTTP Xtream
 - ✅ Tous serveurs HTTPS Xtream
 - ✅ Serveurs avec/sans CORS
@@ -127,7 +127,7 @@ Le système mémorise **quel proxy marche avec quel serveur** :
 
 ### Scénario 1 : Un Seul Serveur Xtream
 ```
-Tu utilises: http://line.trx-ott.com
+Tu utilises: http://mon-serveur-iptv.com
 ├─ Première fois: 5-10s (test des proxies)
 ├─ Après: 1-3s (proxy mémorisé)
 └─ Résultat: ✅ Optimal pour ce serveur
@@ -136,7 +136,7 @@ Tu utilises: http://line.trx-ott.com
 ### Scénario 2 : Plusieurs Serveurs Xtream
 ```
 Tu utilises: 
-├─ http://line.trx-ott.com → corsproxy.io (mémorisé)
+├─ http://mon-serveur-iptv.com → corsproxy.io (mémorisé)
 ├─ http://autre-serveur.com → api.codetabs.com (mémorisé)
 └─ http://serveur3.net → Cloudflare Trace (mémorisé)
 
@@ -286,7 +286,7 @@ Serveur C (Suisse):
 ## 🧪 TESTE AVEC N'IMPORTE QUEL SERVEUR !
 
 **Tu peux maintenant utiliser** :
-- ✅ Ton serveur actuel (`line.trx-ott.com`)
+- ✅ Ton serveur actuel (`mon-serveur-iptv.com`)
 - ✅ N'importe quel autre serveur Xtream
 - ✅ Plusieurs serveurs différents
 

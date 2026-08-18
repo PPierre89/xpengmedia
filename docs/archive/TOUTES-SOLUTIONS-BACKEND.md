@@ -279,7 +279,7 @@ const STREAM_PROXIES = [
 Ouvre dans ton navigateur :
 
 ```
-https://TON-PROXY-URL?url=http://line.trx-ott.com/player_api.php?username=0fee8b0c7f&password=TON-PASSWORD&action=get_live_streams
+https://TON-PROXY-URL?url=http://mon-serveur-iptv.com/player_api.php?username=UTILISATEUR&password=TON-PASSWORD&action=get_live_streams
 ```
 
 **Tu devrais voir** :

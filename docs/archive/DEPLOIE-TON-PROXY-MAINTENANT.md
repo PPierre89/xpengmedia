@@ -228,17 +228,17 @@ Ouvre dans ton navigateur :
 
 **Vercel :**
 ```
-https://xpengmedia-abc123.vercel.app/api/proxy?url=http://line.trx-ott.com/player_api.php?username=0fee8b0c7f&password=TON-PASSWORD&action=get_live_streams
+https://xpengmedia-abc123.vercel.app/api/proxy?url=http://mon-serveur-iptv.com/player_api.php?username=UTILISATEUR&password=TON-PASSWORD&action=get_live_streams
 ```
 
 **Cloudflare :**
 ```
-https://xpengmedia-iptv-proxy.abc123.workers.dev?url=http://line.trx-ott.com/player_api.php?username=0fee8b0c7f&password=TON-PASSWORD&action=get_live_streams
+https://xpengmedia-iptv-proxy.abc123.workers.dev?url=http://mon-serveur-iptv.com/player_api.php?username=UTILISATEUR&password=TON-PASSWORD&action=get_live_streams
 ```
 
 **Netlify :**
 ```
-https://xpengmedia.netlify.app/.netlify/functions/proxy?url=http://line.trx-ott.com/player_api.php?username=0fee8b0c7f&password=TON-PASSWORD&action=get_live_streams
+https://xpengmedia.netlify.app/.netlify/functions/proxy?url=http://mon-serveur-iptv.com/player_api.php?username=UTILISATEUR&password=TON-PASSWORD&action=get_live_streams
 ```
 
 **Tu devrais voir** une liste JSON de chaînes !
