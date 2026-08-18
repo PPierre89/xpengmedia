@@ -862,16 +862,13 @@
         // 🎬 Proxifier les URLs de streaming (nécessaire si erreur CORS/manifestLoadError)
         const PROXY_STREAMS = true; // Active le proxy pour les flux vidéo
         
-        // 🔄 Liste des proxies de streaming (testés et vérifiés avec http://mon-serveur-iptv.com)
+        // 🔄 Liste des proxies de streaming, par ordre de priorité.
+        // Aucun proxy tiers : l'application est auto-hébergée, ses flux ne transitent
+        // que par le NAS. Rien ne sort vers un service externe.
         const STREAM_PROXIES = [
-            { name: 'Proxy local (NAS)', url: null, priority: 0 },     // 🏠 Auto-détecté si auto-hébergé
+            { name: 'Proxy local (NAS)', url: null, priority: 0 },     // 🏠 Auto-détecté
             { name: 'Proxy personnalisé', url: null, priority: 1 },    // Rempli depuis CUSTOM_PROXY
-            { name: 'Cloudflare Trace', url: 'https://1.1.1.1/cdn-cgi/trace?url=', priority: 4 },      // Cloudflare public proxy
-            { name: 'corsproxy.io', url: 'https://corsproxy.io/?', priority: 5 },                       // ✅ TESTÉ: 48903 chaînes API
-            { name: 'api.codetabs.com', url: 'https://api.codetabs.com/v1/proxy?quest=', priority: 6 }, // ✅ TESTÉ: 48903 chaînes API
-            { name: 'cors.eu.org', url: 'https://cors.eu.org/', priority: 7 },                          // Backup
-            { name: 'Direct (HTTP)', url: null, priority: 99 }                                          // Tentative directe en dernier recours
-            // ❌ RETIRÉS: cors-anywhere (403 Forbidden), api.allorigins.win (internal error)
+            { name: 'Direct (HTTP)', url: null, priority: 99 }         // Tentative directe en dernier recours
         ];
         
         let currentStreamProxy = null; // Proxy actuellement utilisé pour les streams
@@ -1480,14 +1477,15 @@
         async function loadM3U(url) {
             showStatus('🔄 Chargement de la playlist M3U...', 'success');
             
-            // 🏠 Proxy local prioritaire (auto-hébergement) : il gère aussi bien
-            // le HTTP que le HTTPS, sans limite ni quota.
-            // Sinon on ne proxifie que le HTTP (contenu mixte bloqué par le navigateur).
+            // 🏠 Proxy local (auto-hébergement) : gère le HTTP comme le HTTPS,
+            // sans limite ni quota, et sans qu'aucun tiers ne voie passer la playlist.
+            // À défaut, tentative directe — qui échouera sur du HTTP depuis une page
+            // HTTPS (contenu mixte), d'où l'intérêt d'être auto-hébergé.
             let fetchUrl = url;
             if (LOCAL_PROXY) {
                 fetchUrl = LOCAL_PROXY + '?url=' + encodeURIComponent(url);
-            } else if (url.startsWith('http://')) {
-                fetchUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
+            } else if (CUSTOM_PROXY) {
+                fetchUrl = CUSTOM_PROXY + '?url=' + encodeURIComponent(url);
             }
             
             try {
@@ -1495,7 +1493,7 @@
                 const text = await response.text();
                 
                 channels = parseM3U(text);
-                debugLog(`📥 Playlist M3U chargée via ${LOCAL_PROXY ? 'proxy local (NAS)' : (url.startsWith('http://') ? 'proxy CORS public' : 'connexion directe')} — ${channels.length} chaînes détectées`, channels.length ? 'success' : 'warning');
+                debugLog(`📥 Playlist M3U chargée via ${LOCAL_PROXY ? 'proxy local (NAS)' : (CUSTOM_PROXY ? 'proxy personnalisé' : 'connexion directe')} — ${channels.length} chaînes détectées`, channels.length ? 'success' : 'warning');
                 displayChannels();
                 showPlayer();
                 if (!channels.length) {
@@ -2061,14 +2059,10 @@
                         debugLog(`⚡ Proxy personnalisé configuré (priorité 1)`, 'info');
                     }
                     
-                    // 2️⃣ Proxies publics en fallback (ordre testé et vérifié)
-                    proxies.push(
-                        { name: 'corsproxy.io', url: 'https://corsproxy.io/?' },              // ✅ TESTÉ: 48903 chaînes
-                        { name: 'api.codetabs.com', url: 'https://api.codetabs.com/v1/proxy?quest=' },  // ✅ TESTÉ: 48903 chaînes
-                        { name: 'Cloudflare Trace', url: 'https://1.1.1.1/cdn-cgi/trace?url=' }, // Cloudflare backup
-                        { name: 'cors.eu.org', url: 'https://cors.eu.org/' }                  // Backup final
-                        // ❌ RETIRÉS: cors-anywhere (403), api.allorigins.win (internal error)
-                    );
+                    // Aucun proxy public : rien ne transite par un service tiers.
+                    // Si le proxy local n'est pas joignable, il n'y a pas de repli —
+                    // c'est volontaire : mieux vaut une erreur qu'exposer les
+                    // identifiants IPTV et les flux à un intermédiaire inconnu.
                     const proxyTimeoutMs = 5000;
                     
                     let proxySuccess = false;

@@ -4,13 +4,13 @@
 
 ### *Le centre multimédia intelligent pour votre XPENG*
 
-[![Live Demo](https://img.shields.io/badge/🌐_Démo-XPENG_Media_Hub-00D9FF?style=for-the-badge&logo=google-chrome&logoColor=white)](https://ppierre89.github.io/xpengmedia/)
 [![Auto-hébergement](https://img.shields.io/badge/🏠_Auto--hébergé-Docker_/_NAS-2496ED?style=for-the-badge&logo=docker&logoColor=white)](DEPLOY-NAS-UGREEN.md)
+[![Image](https://img.shields.io/badge/ghcr.io-xpengmedia-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/PPierre89/xpengmedia/pkgs/container/xpengmedia)
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 
-**[🏠 Déployer sur ton NAS](DEPLOY-NAS-UGREEN.md)** • **[🚀 Démo en direct](https://ppierre89.github.io/xpengmedia/)** • **[📖 Documentation](#-documentation)** • **[🐛 Signaler un bug](https://github.com/PPierre89/xpengmedia/issues)**
+**[🏠 Déployer sur ton NAS](DEPLOY-NAS-UGREEN.md)** • **[📖 Documentation](#-documentation)** • **[🐛 Signaler un bug](https://github.com/PPierre89/xpengmedia/issues)**
 
 ---
 
@@ -399,7 +399,7 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 ### **Outils**
 - **ESLint** - Linting code
 - **PostCSS** - Transformation CSS
-- **gh-pages** - Déploiement automatique
+- **Docker** - Image d'auto-hébergement publiée sur GHCR
 
 ---
 
@@ -436,8 +436,8 @@ npm run build
 # Prévisualiser le build
 npm run preview
 
-# Déployer sur GitHub Pages
-npm run deploy
+# Compiler puis servir avec le serveur d'auto-hébergement
+npm run serve
 ```
 
 ---
@@ -552,7 +552,7 @@ xpengmedia/
 - **Image Docker** publiée sur GHCR (`ghcr.io/ppierre89/xpengmedia`), déployable sur NAS UGREEN en un `docker compose up`
 - **Détection automatique du proxy local** par le player IPTV : plus aucun proxy public à configurer quand l'app est auto-hébergée
 - **Réécriture des playlists HLS** : les segments passent aussi par le proxy local, ce qui corrige les `manifestLoadError`
-- **`BASE_PATH`** : chemin de base configurable (`/` en auto-hébergé, `/xpengmedia/` pour GitHub Pages)
+- **`BASE_PATH`** : chemin de base configurable (`/` par défaut, à changer seulement si un reverse proxy impose un sous-chemin)
 
 #### 🔒 Sécurité
 - Protection SSRF du proxy : réseau privé refusé par défaut, y compris sous les formes IPv6 encapsulant une IPv4 (`::ffff:`, `::a.b.c.d`, NAT64, 6to4)
@@ -560,6 +560,11 @@ xpengmedia/
 - Aucun contenu actif renvoyé par le proxy : type MIME sur liste blanche, `nosniff`, CSP `sandbox`
 - Aucun en-tête CORS par défaut (l'application est same-origin)
 - Identifiants IPTV réels retirés de la documentation
+
+#### 🗑️ Retiré
+- **Backends Vercel, Netlify et Cloudflare** : le proxy local les remplace intégralement
+- **Proxies CORS publics** : plus aucun flux ni identifiant ne transite par un tiers
+- **Déploiement GitHub Pages** : l'application n'est plus publiée en ligne, elle est auto-hébergée
 
 #### 📚 Documentation
 - **DEPLOY-NAS-UGREEN.md** : guide de déploiement complet
@@ -631,7 +636,7 @@ Ce projet est sous licence **MIT**.
 **Ce fork — [@PPierre89](https://github.com/PPierre89)**
 - Dépôt : [PPierre89/xpengmedia](https://github.com/PPierre89/xpengmedia)
 - Ajouts : auto-hébergement Docker/NAS avec proxy IPTV local, durcissement de sécurité du proxy
-- Démo : [https://ppierre89.github.io/xpengmedia/](https://ppierre89.github.io/xpengmedia/)
+- Déploiement : auto-hébergé, image `ghcr.io/ppierre89/xpengmedia`
 
 ---
 

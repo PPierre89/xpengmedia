@@ -16,8 +16,6 @@ RUN npm ci --legacy-peer-deps
 
 COPY . .
 
-# Servi à la racine du domaine (et non sous /xpengmedia/ comme sur GitHub Pages)
-ENV BASE_PATH=/
 ENV NODE_OPTIONS=--max-old-space-size=4096
 RUN npm run build
 
