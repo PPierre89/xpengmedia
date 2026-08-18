@@ -852,11 +852,12 @@
         // => zéro CORS, zéro proxy public, zéro configuration.
         let LOCAL_PROXY = null;         // Rempli par detectLocalProxy()
 
-        // ⚡ Configuration des proxies backend cloud (par ordre de priorité)
-        // Uniquement nécessaires si tu N'auto-héberges PAS. Remplace null par les URLs :
-        const CLOUDFLARE_PROXY = null;  // Ex: 'https://xpengmedia-iptv-proxy.VOTRE-ID.workers.dev'
-        const VERCEL_PROXY = null;      // Ex: 'https://xpengmedia.vercel.app/api/proxy'
-        const NETLIFY_PROXY = null;     // Ex: 'https://xpengmedia.netlify.app/.netlify/functions/proxy'
+        // ⚡ Proxy backend personnalisé (optionnel)
+        // Sans objet en auto-hébergement : LOCAL_PROXY est détecté tout seul.
+        // Utile uniquement si le player est servi ailleurs (GitHub Pages) et que tu
+        // veux pointer vers ton propre proxy accessible publiquement.
+        // Doit accepter le format : <URL>?url=<url_cible_encodée>
+        const CUSTOM_PROXY = null;      // Ex: 'https://mon-proxy.exemple.com/api/proxy'
         
         // 🎬 Proxifier les URLs de streaming (nécessaire si erreur CORS/manifestLoadError)
         const PROXY_STREAMS = true; // Active le proxy pour les flux vidéo
@@ -864,9 +865,7 @@
         // 🔄 Liste des proxies de streaming (testés et vérifiés avec http://mon-serveur-iptv.com)
         const STREAM_PROXIES = [
             { name: 'Proxy local (NAS)', url: null, priority: 0 },     // 🏠 Auto-détecté si auto-hébergé
-            { name: 'Cloudflare Worker', url: null, priority: 1 },     // Sera rempli automatiquement
-            { name: 'Vercel Edge', url: null, priority: 2 },           // Sera rempli automatiquement
-            { name: 'Netlify Functions', url: null, priority: 3 },     // Sera rempli automatiquement
+            { name: 'Proxy personnalisé', url: null, priority: 1 },    // Rempli depuis CUSTOM_PROXY
             { name: 'Cloudflare Trace', url: 'https://1.1.1.1/cdn-cgi/trace?url=', priority: 4 },      // Cloudflare public proxy
             { name: 'corsproxy.io', url: 'https://corsproxy.io/?', priority: 5 },                       // ✅ TESTÉ: 48903 chaînes API
             { name: 'api.codetabs.com', url: 'https://api.codetabs.com/v1/proxy?quest=', priority: 6 }, // ✅ TESTÉ: 48903 chaînes API
@@ -1772,9 +1771,7 @@
                 }
             };
             setStreamProxy('Proxy local (NAS)', LOCAL_PROXY, '🏠 Proxy local configuré pour les streams');
-            setStreamProxy('Cloudflare Worker', CLOUDFLARE_PROXY, '⚡ Cloudflare Worker configuré pour les streams');
-            setStreamProxy('Vercel Edge', VERCEL_PROXY, '⚡ Vercel Edge configuré pour les streams');
-            setStreamProxy('Netlify Functions', NETLIFY_PROXY, '⚡ Netlify Functions configuré pour les streams');
+            setStreamProxy('Proxy personnalisé', CUSTOM_PROXY, '⚡ Proxy personnalisé configuré pour les streams');
             
             // 🧠 Vérifier si on a un proxy en cache pour les flux de ce serveur
             if (serverUrl && streamProxyCache[serverUrl]) {
@@ -2054,37 +2051,17 @@
                         debugLog(`🏠 Proxy local détecté (priorité 0) — aucune limite CORS`, 'success');
                     }
                     
-                    // 1️⃣ Cloudflare Worker (le plus rapide)
-                    if (CLOUDFLARE_PROXY) {
+                    // 1️⃣ Proxy personnalisé, si configuré
+                    if (CUSTOM_PROXY) {
                         proxies.push({ 
-                            name: 'Cloudflare Worker', 
-                            url: CLOUDFLARE_PROXY + '?url=',
+                            name: 'Proxy personnalisé', 
+                            url: CUSTOM_PROXY + '?url=',
                             isBackend: true
                         });
-                        debugLog(`⚡ Cloudflare Worker configuré (priorité 1)`, 'info');
+                        debugLog(`⚡ Proxy personnalisé configuré (priorité 1)`, 'info');
                     }
                     
-                    // 2️⃣ Vercel Edge (très rapide)
-                    if (VERCEL_PROXY) {
-                        proxies.push({ 
-                            name: 'Vercel Edge', 
-                            url: VERCEL_PROXY + '?url=',
-                            isBackend: true
-                        });
-                        debugLog(`⚡ Vercel Edge configuré (priorité 2)`, 'info');
-                    }
-                    
-                    // 3️⃣ Netlify Functions (rapide)
-                    if (NETLIFY_PROXY) {
-                        proxies.push({ 
-                            name: 'Netlify Functions', 
-                            url: NETLIFY_PROXY + '?url=',
-                            isBackend: true
-                        });
-                        debugLog(`⚡ Netlify Functions configuré (priorité 3)`, 'info');
-                    }
-                    
-                    // 4️⃣ Proxies publics en fallback (ordre testé et vérifié)
+                    // 2️⃣ Proxies publics en fallback (ordre testé et vérifié)
                     proxies.push(
                         { name: 'corsproxy.io', url: 'https://corsproxy.io/?' },              // ✅ TESTÉ: 48903 chaînes
                         { name: 'api.codetabs.com', url: 'https://api.codetabs.com/v1/proxy?quest=' },  // ✅ TESTÉ: 48903 chaînes
