@@ -12,6 +12,7 @@
     "serve": "npm run build:selfhosted && npm start",
     "docker:build": "docker build -t xpengmedia:local .",
     "docker:up": "docker compose -f docker-compose.build.yml up -d --build",
+    "test:security": "node --test server/security.test.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",

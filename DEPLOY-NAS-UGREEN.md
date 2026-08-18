@@ -83,7 +83,9 @@ Toutes optionnelles — l'app fonctionne sans y toucher.
 | `TZ` | `Europe/Paris` | Fuseau horaire |
 | `PROXY_ALLOW_PRIVATE` | `false` | Mets `true` **uniquement** si ton serveur IPTV / ta playlist M3U est sur ton réseau local. Par défaut, le proxy refuse les adresses privées (protection SSRF : personne ne peut se servir du NAS pour scanner ton réseau). |
 | `PROXY_USER_AGENT` | `VLC/3.0.20 LibVLC/3.0.20` | Certains serveurs Xtream ne répondent qu'aux vrais lecteurs. Change-le si ton fournisseur en impose un autre. |
-| `PROXY_TIMEOUT_MS` | `20000` | Délai max d'une requête vers le serveur distant |
+| `PROXY_TIMEOUT_MS` | `20000` | Délai d'inactivité max d'une requête vers le serveur distant |
+| `PROXY_MAX_REDIRECTS` | `5` | Redirections suivies au maximum (chacune est re-vérifiée) |
+| `ALLOWED_ORIGINS` | *(vide)* | Origines autorisées en CORS, séparées par des virgules. Vide = aucun en-tête CORS, ce qui est le bon réglage : l'app est servie par ce même serveur, donc same-origin. |
 | `STATIC_DIR` | `/app/dist` | Dossier des fichiers de l'app |
 
 Exemple, playlist hébergée sur le NAS lui-même :
@@ -126,6 +128,35 @@ Trois options, de la plus simple à la plus robuste :
    est ouvert et pourrait sinon être utilisé par n'importe qui.
 
 > ⚠️ N'ouvre pas le port 8080 directement sur Internet sans authentification.
+
+---
+
+## 🔒 Ce que le proxy protège (et ce qu'il ne protège pas)
+
+Le proxy `/api/proxy` a été audité et durci. Ce qu'il applique :
+
+- **Réseau privé refusé par défaut.** Les adresses locales sont bloquées, y compris sous leurs
+  formes IPv6 déguisées (`::ffff:c0a8:101`, `::192.168.1.1`, NAT64, 6to4) — un site web ne peut
+  donc pas se servir du NAS pour lire ton routeur. Passe `PROXY_ALLOW_PRIVATE=true` seulement si
+  ton serveur IPTV est réellement sur ton LAN.
+- **Chaque redirection est re-vérifiée.** Un serveur distant ne peut pas rediriger le proxy vers
+  ton réseau local ou vers un autre protocole.
+- **La connexion est épinglée à l'adresse vérifiée**, ce qui empêche un nom de domaine de basculer
+  vers une IP locale entre la vérification et la connexion (DNS rebinding).
+- **Aucun contenu actif n'est renvoyé.** Le HTML ou le SVG d'un serveur distant est déclassé en
+  fichier binaire inerte : il ne peut pas s'exécuter sur l'origine de l'app, donc pas d'accès à
+  tes identifiants IPTV stockés par le navigateur.
+- **Aucun en-tête CORS par défaut**, donc aucun autre site ne peut lire les réponses du proxy.
+
+Ce qu'il ne fait **pas** : il n'y a **aucune authentification**. Toute personne ayant accès au
+réseau où tourne le NAS peut utiliser le proxy. C'est acceptable sur un LAN domestique, ça ne
+l'est pas sur Internet — d'où l'avertissement ci-dessus.
+
+Les protections sont couvertes par des tests :
+
+```bash
+npm run test:security
+```
 
 ---
 
