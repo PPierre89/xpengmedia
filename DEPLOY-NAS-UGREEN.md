@@ -69,7 +69,7 @@ cd xpengmedia
 docker compose -f docker-compose.build.yml up -d
 ```
 
-La compilation prend quelques minutes sur le processeur du NAS (Intel N100), c'est normal.
+La compilation prend quelques minutes sur le processeur du NAS (Intel Pentium Gold 8505), c'est normal.
 
 ---
 

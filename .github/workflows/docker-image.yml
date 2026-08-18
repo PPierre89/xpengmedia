@@ -47,8 +47,12 @@ jobs:
         with:
           context: .
           push: true
-          # amd64 : NAS UGREEN DXP4800 Plus (Intel N100) / arm64 : Raspberry Pi, NAS ARM
-          platforms: linux/amd64,linux/arm64
+          # Le NAS UGREEN DXP4800 Plus (Intel Pentium Gold 8505) est en x86-64.
+          # Construire aussi arm64 imposerait une émulation QEMU qui multiplie le
+          # temps de publication par 5 sans servir à rien ici. Ajouter
+          # `,linux/arm64` si une machine ARM (Raspberry Pi, NAS ARM) doit un jour
+          # utiliser cette image.
+          platforms: linux/amd64
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
