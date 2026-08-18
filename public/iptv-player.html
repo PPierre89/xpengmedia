@@ -846,8 +846,14 @@
         let currentTab = 'live';
         let currentLayout = 'grid';
         
-        // ⚡ Configuration des proxies backend (par ordre de priorité)
-        // Déploie-les et remplace null par les URLs :
+        // 🏠 Proxy local (auto-hébergement : NAS UGREEN, Docker, Raspberry Pi...)
+        // Détecté automatiquement au démarrage : si la page est servie par le
+        // serveur intégré (server/server.js), le proxy est sur la MÊME origine
+        // => zéro CORS, zéro proxy public, zéro configuration.
+        let LOCAL_PROXY = null;         // Rempli par detectLocalProxy()
+
+        // ⚡ Configuration des proxies backend cloud (par ordre de priorité)
+        // Uniquement nécessaires si tu N'auto-héberges PAS. Remplace null par les URLs :
         const CLOUDFLARE_PROXY = null;  // Ex: 'https://xpengmedia-iptv-proxy.VOTRE-ID.workers.dev'
         const VERCEL_PROXY = null;      // Ex: 'https://xpengmedia.vercel.app/api/proxy'
         const NETLIFY_PROXY = null;     // Ex: 'https://xpengmedia.netlify.app/.netlify/functions/proxy'
@@ -857,6 +863,7 @@
         
         // 🔄 Liste des proxies de streaming (testés et vérifiés avec http://line.trx-ott.com)
         const STREAM_PROXIES = [
+            { name: 'Proxy local (NAS)', url: null, priority: 0 },     // 🏠 Auto-détecté si auto-hébergé
             { name: 'Cloudflare Worker', url: null, priority: 1 },     // Sera rempli automatiquement
             { name: 'Vercel Edge', url: null, priority: 2 },           // Sera rempli automatiquement
             { name: 'Netlify Functions', url: null, priority: 3 },     // Sera rempli automatiquement
@@ -895,8 +902,35 @@
         // ⚡ Lazy loading pour performance
         let isLoading = false;
         
+        // 🏠 Détection du proxy local (auto-hébergement NAS / Docker)
+        // Si la page est servie par server/server.js, /healthz répond et le proxy
+        // /api/proxy est disponible sur la même origine : plus aucun souci CORS.
+        async function detectLocalProxy() {
+            if (!location.origin || location.protocol === 'file:') return;
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 2000);
+                const response = await fetch('/healthz', { signal: controller.signal });
+                clearTimeout(timeoutId);
+                if (!response.ok) return;
+
+                const info = await response.json();
+                if (info && info.app === 'xpengmedia' && info.proxy) {
+                    LOCAL_PROXY = location.origin + info.proxy;
+                    debugLog(`🏠 Proxy local détecté : ${LOCAL_PROXY}`, 'success');
+                    debugLog('✅ Mode auto-hébergé : les proxies publics ne seront pas utilisés', 'success');
+                }
+            } catch (e) {
+                // Pas de serveur local (GitHub Pages, ouverture du fichier en direct...) :
+                // on garde le fonctionnement habituel avec les proxies cloud/publics.
+                debugLog('ℹ️ Pas de proxy local détecté, utilisation des proxies distants', 'info');
+            }
+        }
+
         // Charger la configuration sauvegardée au démarrage
-        window.onload = function() {
+        window.onload = async function() {
+            // await : le proxy local doit être connu AVANT toute connexion automatique
+            await detectLocalProxy();
             loadSavedConfig();
             loadFavorites();
             loadHistory();
@@ -1447,16 +1481,22 @@
         async function loadM3U(url) {
             showStatus('🔄 Chargement de la playlist M3U...', 'success');
             
-            // Utiliser CORS proxy si nécessaire
-            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-            const fetchUrl = url.startsWith('http://') ? proxyUrl + url : url;
+            // 🏠 Proxy local prioritaire (auto-hébergement) : il gère aussi bien
+            // le HTTP que le HTTPS, sans limite ni quota.
+            // Sinon on ne proxifie que le HTTP (contenu mixte bloqué par le navigateur).
+            let fetchUrl = url;
+            if (LOCAL_PROXY) {
+                fetchUrl = LOCAL_PROXY + '?url=' + encodeURIComponent(url);
+            } else if (url.startsWith('http://')) {
+                fetchUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
+            }
             
             try {
                 const response = await fetch(fetchUrl);
                 const text = await response.text();
                 
                 channels = parseM3U(text);
-                debugLog(`📥 Playlist M3U chargée via ${url.startsWith('http://') ? 'proxy CORS' : 'connexion directe'} — ${channels.length} chaînes détectées`, channels.length ? 'success' : 'warning');
+                debugLog(`📥 Playlist M3U chargée via ${LOCAL_PROXY ? 'proxy local (NAS)' : (url.startsWith('http://') ? 'proxy CORS public' : 'connexion directe')} — ${channels.length} chaînes détectées`, channels.length ? 'success' : 'warning');
                 displayChannels();
                 showPlayer();
                 if (!channels.length) {
@@ -1722,19 +1762,19 @@
         
         // 🎬 Sélection intelligente du proxy de streaming (avec test de flux)
         async function selectStreamProxy(streamUrl = null, serverUrl = null) {
-            // Initialiser les backends dans l'ordre de priorité
-            if (CLOUDFLARE_PROXY && STREAM_PROXIES[0].url === null) {
-                STREAM_PROXIES[0].url = CLOUDFLARE_PROXY + '?url=';
-                debugLog('⚡ Cloudflare Worker configuré pour les streams', 'success');
-            }
-            if (VERCEL_PROXY && STREAM_PROXIES[1].url === null) {
-                STREAM_PROXIES[1].url = VERCEL_PROXY + '?url=';
-                debugLog('⚡ Vercel Edge configuré pour les streams', 'success');
-            }
-            if (NETLIFY_PROXY && STREAM_PROXIES[2].url === null) {
-                STREAM_PROXIES[2].url = NETLIFY_PROXY + '?url=';
-                debugLog('⚡ Netlify Functions configuré pour les streams', 'success');
-            }
+            // Initialiser les backends dans l'ordre de priorité (recherche par nom :
+            // l'ordre du tableau peut changer sans casser cette initialisation)
+            const setStreamProxy = (name, baseUrl, message) => {
+                const entry = STREAM_PROXIES.find(p => p.name === name);
+                if (baseUrl && entry && entry.url === null) {
+                    entry.url = baseUrl + '?url=';
+                    debugLog(message, 'success');
+                }
+            };
+            setStreamProxy('Proxy local (NAS)', LOCAL_PROXY, '🏠 Proxy local configuré pour les streams');
+            setStreamProxy('Cloudflare Worker', CLOUDFLARE_PROXY, '⚡ Cloudflare Worker configuré pour les streams');
+            setStreamProxy('Vercel Edge', VERCEL_PROXY, '⚡ Vercel Edge configuré pour les streams');
+            setStreamProxy('Netlify Functions', NETLIFY_PROXY, '⚡ Netlify Functions configuré pour les streams');
             
             // 🧠 Vérifier si on a un proxy en cache pour les flux de ce serveur
             if (serverUrl && streamProxyCache[serverUrl]) {
@@ -2001,7 +2041,18 @@
                 showStatus('🔄 Étape 2/3: Test intelligent des proxies CORS...', 'success');
                     
                     // Construction de la liste des proxies dans l'ordre de priorité
-                    const proxies = [];
+                    // (réassigné plus bas quand un proxy est mémorisé en cache => let)
+                    let proxies = [];
+                    
+                    // 0️⃣ Proxy local auto-hébergé (NAS/Docker) : même origine, aucun CORS
+                    if (LOCAL_PROXY) {
+                        proxies.push({
+                            name: 'Proxy local (NAS)',
+                            url: LOCAL_PROXY + '?url=',
+                            isBackend: true
+                        });
+                        debugLog(`🏠 Proxy local détecté (priorité 0) — aucune limite CORS`, 'success');
+                    }
                     
                     // 1️⃣ Cloudflare Worker (le plus rapide)
                     if (CLOUDFLARE_PROXY) {

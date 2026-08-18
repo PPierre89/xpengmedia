@@ -1,0 +1,31 @@
+# ============================================================================
+# XPENG Media Hub — construction depuis les sources
+#
+#   git clone https://github.com/PPierre89/xpengmedia.git
+#   cd xpengmedia
+#   docker compose -f docker-compose.build.yml up -d
+#
+# À utiliser si tu préfères compiler toi-même plutôt que de télécharger
+# l'image publiée (ou si tu as modifié le code).
+# ============================================================================
+
+services:
+  xpengmedia:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: xpengmedia:local
+    container_name: xpengmedia
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      TZ: Europe/Paris
+      PROXY_ALLOW_PRIVATE: "false"
+      PROXY_USER_AGENT: "VLC/3.0.20 LibVLC/3.0.20"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
