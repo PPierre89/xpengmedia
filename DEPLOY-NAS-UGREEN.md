@@ -117,6 +117,59 @@ erreur explicite que de laisser des identifiants IPTV transiter par un service i
 
 ---
 
+## 📱 Installer l'app dans la voiture (PWA)
+
+L'application est une **PWA installable** : ajoutée à l'écran d'accueil, elle démarre
+en plein écran, sans barre d'adresse, et son interface se charge instantanément depuis
+le cache même quand le réseau mobile est mauvais.
+
+### ⚠️ Prérequis : une origine sécurisée
+
+Un service worker — le mécanisme qui rend tout ça possible — **n'existe qu'en HTTPS
+ou sur localhost**. C'est une règle des navigateurs, pas un réglage de l'application.
+
+| Accès | PWA installable ? |
+|---|---|
+| `http://IP-DU-NAS:2789` (LAN, HTTP) | ❌ non — l'app fonctionne, mais sans cache ni installation |
+| Tunnel UGREEN `https://…ugdocker.link` | ✅ oui |
+| Tailscale avec HTTPS (`tailscale serve`) | ✅ oui — et ça marche aussi à la maison |
+| Reverse proxy avec certificat (Caddy, NPM…) | ✅ oui |
+
+Sans contexte sécurisé, rien ne casse : l'app se comporte comme un site normal et
+signale simplement en console pourquoi le mode hors ligne est inactif.
+
+### Installer
+
+1. Ouvrir l'app depuis une URL **HTTPS**.
+2. Menu du navigateur → **Installer l'application** / **Ajouter à l'écran d'accueil**.
+3. L'icône apparaît ; l'app s'ouvre ensuite en mode autonome.
+
+Deux raccourcis sont exposés par le manifeste : **Player IPTV** et **Tous les services**
+(appui long sur l'icône, selon la plateforme).
+
+### Ce qui est mis en cache — et ce qui ne l'est jamais
+
+| | Stratégie |
+|---|---|
+| Pages HTML | réseau d'abord, cache en secours si hors ligne |
+| `/assets/*` (fichiers hachés) | cache d'abord — immuables par construction |
+| Icônes, manifeste, autres fichiers | cache d'abord, rafraîchis en tâche de fond |
+| **`/api/proxy`** (flux et API IPTV) | **jamais intercepté** |
+| **`/healthz`** | **jamais intercepté** |
+
+Ces deux exclusions sont délibérées et couvertes par des tests (`npm run test:pwa`) :
+mettre les segments vidéo en cache saturerait le stockage du navigateur et rejouerait
+des segments périmés, et une réponse `/healthz` figée ferait croire au player que le
+proxy local est joignable alors qu'il ne l'est pas.
+
+### Mises à jour
+
+Le service worker est estampillé à chaque build avec une empreinte du contenu livré,
+et le serveur l'envoie en `no-cache`. Après un `docker compose pull && docker compose up -d`,
+la nouvelle version est donc prise en compte au chargement suivant, sans manipulation.
+
+---
+
 ## 🌍 Y accéder depuis la voiture (hors du domicile)
 
 Trois options, de la plus simple à la plus robuste :

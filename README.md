@@ -62,6 +62,12 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 - **Animations fluides** avec Framer Motion
 - **Mode paysage optimisé** pour écran automobile
 
+### 📱 **PWA installable**
+- Installation sur l'écran d'accueil, démarrage plein écran
+- Interface disponible hors ligne, chargement instantané depuis le cache
+- Flux IPTV et détection du proxy local volontairement exclus du cache
+- Nécessite un accès HTTPS ([détails](DEPLOY-NAS-UGREEN.md#-installer-lapp-dans-la-voiture-pwa))
+
 ### 📱 **Responsive & Optimisé**
 - **Portrait** : 5 colonnes, interface compacte
 - **Paysage** : 8 colonnes, aucun scroll nécessaire
@@ -480,6 +486,9 @@ xpengmedia/
 │   ├── server.js            # Serveur tout-en-un : app + proxy IPTV (zéro dépendance)
 │   └── security.test.mjs    # Tests des protections du proxy
 ├── public/                  # Fichiers statiques (dont iptv-player.html)
+│   ├── sw.js                # Service worker de la PWA
+│   ├── manifest.webmanifest # Manifeste PWA
+│   └── icons/pwa/           # Icônes d'installation
 ├── src/
 │   ├── components/          # Composants React (favorites, icons, locale, modals…)
 │   ├── context/             # React Context (Favorites, Locale, Theme)
@@ -488,6 +497,7 @@ xpengmedia/
 │   ├── pages/               # Pages de l'application
 │   ├── App.tsx
 │   └── main.tsx
+├── scripts/                 # Génération des icônes, post-build, tests PWA
 ├── docs/                    # Documentation des systèmes (régions, langues, logos)
 │   └── archive/             # Documentation historique — ne plus suivre
 ├── Dockerfile               # Image tout-en-un pour l'auto-hébergement
@@ -544,6 +554,15 @@ xpengmedia/
 ---
 
 ## 📝 Changelog
+
+### **v2.3.0** — 2026-08-18 📱 PWA installable
+
+#### 🆕 Nouvelles fonctionnalités
+- **Application installable** : manifeste, icônes (dont maskable et iOS) générées sans dépendance, raccourcis vers le player IPTV et le catalogue
+- **Service worker** : interface disponible hors ligne, démarrage instantané depuis le cache
+- **Exclusions strictes** : `/api/proxy` et `/healthz` ne sont jamais interceptés, pour ne pas mettre en cache les flux vidéo ni figer la détection du proxy local
+- **Mises à jour fiables** : service worker estampillé au build depuis une empreinte du contenu, servi en `no-cache`
+- Tests dédiés (`npm run test:pwa`) sur la logique de routage du service worker
 
 ### **v2.2.0** — 2026-08-18 🏠 Auto-hébergement
 

@@ -6,6 +6,7 @@ import { FavoritesProvider } from './context/FavoritesContext';
 import { LocaleProvider } from './context/LocaleContext';
 import './index.css';
 import App from './App';
+import { registerServiceWorker } from './registerSW';
 
 // Utilisation de HashRouter pour une meilleure compatibilité avec GitHub Pages
 createRoot(document.getElementById('root')!).render(
@@ -21,3 +22,7 @@ createRoot(document.getElementById('root')!).render(
     </HashRouter>
   </StrictMode>
 );
+
+// PWA : démarrage instantané et fonctionnement hors ligne de l'interface.
+// Sans effet si l'app n'est pas servie depuis une origine sécurisée.
+registerServiceWorker();
