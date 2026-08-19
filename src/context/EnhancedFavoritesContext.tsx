@@ -33,50 +33,75 @@ export const EnhancedFavoritesProvider: React.FC<{ children: ReactNode }> = ({ c
     { id: '2', name: 'Netflix', url: 'https://netflix.com', icon: '🎬', category: 'Vidéos', isPinned: false, visitCount: 0, tags: ['streaming', 'films'], createdAt: new Date(), updatedAt: new Date() },
     { id: '3', name: 'Spotify', url: 'https://spotify.com', icon: '🎵', category: 'Musique', isPinned: true, visitCount: 0, tags: ['streaming', 'musique'], createdAt: new Date(), updatedAt: new Date() },
     { id: '4', name: 'Twitch', url: 'https://twitch.tv', icon: '🎮', category: 'Jeux', isPinned: false, visitCount: 0, tags: ['streaming', 'gaming'], createdAt: new Date(), updatedAt: new Date() },
-    { id: '5', name: 'Twitter', url: 'https://twitter.com', icon: '🐦', category: 'Social', isPinned: false, visitCount: 0, tags: ['réseaux sociaux'], createdAt: new Date(), updatedAt: new Date() },
-    { id: '6', name: 'Reddit', url: 'https://reddit.com', icon: '🤖', category: 'Social', isPinned: false, visitCount: 0, tags: ['forum'], createdAt: new Date(), updatedAt: new Date() },
+    { id: '5', name: 'Twitter', url: 'https://twitter.com', icon: '🐦', category: 'Réseaux sociaux', isPinned: false, visitCount: 0, tags: ['réseaux sociaux'], createdAt: new Date(), updatedAt: new Date() },
+    { id: '6', name: 'Reddit', url: 'https://reddit.com', icon: '🤖', category: 'Réseaux sociaux', isPinned: false, visitCount: 0, tags: ['forum'], createdAt: new Date(), updatedAt: new Date() },
     { id: '7', name: 'Gmail', url: 'https://gmail.com', icon: '✉️', category: 'Utilitaires', isPinned: true, visitCount: 0, tags: ['email'], createdAt: new Date(), updatedAt: new Date() },
     { id: '8', name: 'Google Drive', url: 'https://drive.google.com', icon: '📁', category: 'Utilitaires', isPinned: false, visitCount: 0, tags: ['stockage'], createdAt: new Date(), updatedAt: new Date() },
   ];
 
-  const getDefaultCategories = (): string[] => ['Vidéos', 'Musique', 'Jeux', 'Social', 'Utilitaires', 'Actualités', 'Sport', 'Shopping'];
+  const getDefaultCategories = (): string[] => [
+    'Vidéos', 'Musique', 'Jeux', 'Réseaux sociaux', 'Actualités', 'Utilitaires',
+    'Véhicule', 'Météo', 'Sport', 'Éducation', 'Santé', 'Voyages', 'Cuisine',
+    'Technologie', 'Finance', 'Shopping', 'Autres',
+  ];
 
   // Charger les données depuis le stockage local
   useEffect(() => {
-    const loadFromLocalStorage = () => {
-      const savedFavorites = localStorage.getItem('favorites');
-      if (savedFavorites) {
-        const parsed = JSON.parse(savedFavorites, (key, value) => {
-          if (key === 'createdAt' || key === 'updatedAt' || key === 'lastVisited') {
-            return new Date(value);
-          }
-          return value;
-        });
-        setFavorites(parsed.length > 0 ? parsed : getDefaultFavorites());
-      } else {
-        // Première visite - charger les favoris par défaut
-        const defaults = getDefaultFavorites();
-        setFavorites(defaults);
-        localStorage.setItem('favorites', JSON.stringify(defaults));
-      }
-
-      const savedCategories = localStorage.getItem('favoriteCategories');
-      if (savedCategories) {
-        const parsed = JSON.parse(savedCategories);
-        setCategories(parsed.length > 0 ? parsed : getDefaultCategories());
-      } else {
-        const defaults = getDefaultCategories();
-        setCategories(defaults);
-        localStorage.setItem('favoriteCategories', JSON.stringify(defaults));
-      }
-
-      const savedTags = localStorage.getItem('favoriteTags');
-      if (savedTags) {
-        setTags(JSON.parse(savedTags));
+    // Un localStorage corrompu ne doit jamais empêcher l'application de démarrer.
+    const readArray = <T,>(key: string): T[] | null => {
+      const raw = localStorage.getItem(key);
+      if (!raw) return null;
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? (parsed as T[]) : null;
+      } catch {
+        console.warn(`[favoris] « ${key} » illisible dans localStorage, valeurs par défaut utilisées`);
+        return null;
       }
     };
 
-    loadFromLocalStorage();
+    // Les favoris enregistrés par l'ancien contexte n'avaient ni dates ni
+    // compteur de visites : on complète plutôt que de les jeter.
+    const toDate = (value: unknown): Date => {
+      const date = typeof value === 'string' || typeof value === 'number' ? new Date(value) : new Date();
+      return Number.isNaN(date.getTime()) ? new Date() : date;
+    };
+
+    const normalize = (item: Partial<FavoriteItem>): FavoriteItem => ({
+      ...item,
+      id: item.id ?? Date.now().toString(36) + Math.random().toString(36).slice(2),
+      name: item.name ?? '',
+      url: item.url ?? '',
+      icon: item.icon ?? '⭐',
+      category: item.category ?? 'Autres',
+      isPinned: item.isPinned ?? false,
+      visitCount: item.visitCount ?? 0,
+      tags: item.tags ?? [],
+      lastVisited: item.lastVisited ? toDate(item.lastVisited) : undefined,
+      createdAt: toDate(item.createdAt),
+      updatedAt: toDate(item.updatedAt),
+    });
+
+    const savedFavorites = readArray<Partial<FavoriteItem>>('favorites');
+    if (savedFavorites && savedFavorites.length > 0) {
+      setFavorites(savedFavorites.map(normalize));
+    } else {
+      // Première visite - charger les favoris par défaut
+      const defaults = getDefaultFavorites();
+      setFavorites(defaults);
+      localStorage.setItem('favorites', JSON.stringify(defaults));
+    }
+
+    const savedCategories = readArray<string>('favoriteCategories');
+    if (savedCategories && savedCategories.length > 0) {
+      setCategories(savedCategories);
+    } else {
+      const defaults = getDefaultCategories();
+      setCategories(defaults);
+      localStorage.setItem('favoriteCategories', JSON.stringify(defaults));
+    }
+
+    setTags(readArray<string>('favoriteTags') ?? []);
   }, []);
 
   // Sauvegarder dans le stockage local à chaque modification

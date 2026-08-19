@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { useFavorites } from '../context/FavoritesContext';
+import { useEnhancedFavorites } from '../context/EnhancedFavoritesContext';
 import { XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale } from '../context/LocaleContext';
 
 export const SearchBar: React.FC = () => {
-  const { favorites } = useFavorites();
+  const { favorites } = useEnhancedFavorites();
   const { t } = useLocale();
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);

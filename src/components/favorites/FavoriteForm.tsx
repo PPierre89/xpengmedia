@@ -224,13 +224,17 @@ const FavoriteForm: React.FC<FavoriteFormProps> = ({ isOpen, onClose, initialDat
                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                         <FiLink className="h-5 w-5 text-gray-400" />
                       </div>
+                      {/* type="text" et non "url" : la validation native refuserait
+                          « netflix.com », alors que handleSubmit préfixe déjà https://
+                          pour accepter la saisie naturelle d'un nom de domaine. */}
                       <input
-                        type="url"
+                        type="text"
+                        inputMode="url"
                         id="url"
                         value={url}
                         onChange={(e) => setUrl(e.target.value)}
                         className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                        placeholder="https://exemple.com"
+                        placeholder="netflix.com ou https://netflix.com"
                         required
                       />
                     </div>

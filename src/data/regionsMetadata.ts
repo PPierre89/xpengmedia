@@ -195,55 +195,6 @@ export function getSuggestedRegions(currentRegion: Region): Region[] {
   return Array.from(suggestions);
 }
 
-export function getOrderedRegions(userRegion: Region): RegionMetadata[] {
-  const current = regionsMetadata.find(r => r.code === userRegion);
-  const suggestions = getSuggestedRegions(userRegion);
-  const globalRegion = regionsMetadata.find(r => r.code === 'global')!;
-  
-  const ordered: RegionMetadata[] = [];
-  
-  // 1. Global (toujours en premier)
-  ordered.push(globalRegion);
-  
-  // 2. Région actuelle
-  if (current && current.code !== 'global') {
-    ordered.push(current);
-  }
-  
-  // 3. Régions suggérées
-  suggestions
-    .map(code => regionsMetadata.find(r => r.code === code))
-    .filter(Boolean)
-    .forEach(r => {
-      if (!ordered.find(o => o.code === r!.code)) {
-        ordered.push(r!);
-      }
-    });
-  
-  // 4. Autres régions (ordre alphabétique)
-  regionsMetadata
-    .filter(r => r.code !== 'global' && !ordered.find(o => o.code === r.code))
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .forEach(r => ordered.push(r));
-  
-  return ordered;
-}
-
-export function getRegionsByGroup(): Record<string, RegionMetadata[]> {
-  const groups: Record<string, RegionMetadata[]> = {};
-  
-  regionsMetadata.forEach(region => {
-    if (region.code === 'global') return;
-    
-    if (!groups[region.group]) {
-      groups[region.group] = [];
-    }
-    groups[region.group]!.push(region);
-  });
-  
-  return groups;
-}
-
 export type RegionSectionId = 'global' | 'suggested' | 'others';
 
 export interface RegionSection {

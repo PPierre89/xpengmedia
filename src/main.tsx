@@ -2,21 +2,21 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { HashRouter } from 'react-router-dom';
 import { ThemeProvider } from './context/ThemeContext';
-import { FavoritesProvider } from './context/FavoritesContext';
+import { EnhancedFavoritesProvider } from './context/EnhancedFavoritesContext';
 import { LocaleProvider } from './context/LocaleContext';
 import './index.css';
 import App from './App';
 import { registerServiceWorker } from './registerSW';
 
-// Utilisation de HashRouter pour une meilleure compatibilité avec GitHub Pages
+// HashRouter : aucune réécriture d'URL à configurer côté serveur ni reverse proxy.
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HashRouter>
       <ThemeProvider>
         <LocaleProvider>
-          <FavoritesProvider>
+          <EnhancedFavoritesProvider>
             <App />
-          </FavoritesProvider>
+          </EnhancedFavoritesProvider>
         </LocaleProvider>
       </ThemeProvider>
     </HashRouter>

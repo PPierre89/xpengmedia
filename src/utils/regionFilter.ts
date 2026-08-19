@@ -8,7 +8,6 @@ import {
   chargingCategories,
   otherServicesCategories,
 } from '../data/platforms';
-import { regionsMetadata } from '../data/regionsMetadata';
 
 // Mapping des régions vers leurs groupes d'availability
 // IMPORTANT : utiliser uniquement des valeurs réellement présentes dans AvailabilityScope
@@ -62,16 +61,6 @@ export function filterPlatformsByRegion(platforms: PlatformLink[], userRegion: R
   );
 }
 
-/**
- * Compte les services disponibles par catégorie pour une région
- */
-export function countPlatformsByCategory(
-  platforms: PlatformLink[],
-  userRegion: Region
-): number {
-  return filterPlatformsByRegion(platforms, userRegion).length;
-}
-
 // Catalogue complet, à plat : sert au comptage par région.
 const allPlatforms: PlatformLink[] = [
   videoCategories,
@@ -97,24 +86,4 @@ export function countServicesForRegion(userRegion: Region): number {
   const count = filterPlatformsByRegion(allPlatforms, userRegion).length;
   serviceCountCache.set(userRegion, count);
   return count;
-}
-
-/**
- * Obtient la liste des régions suggérées basées sur la région actuelle
- */
-export function getSuggestedRegionsForUser(userRegion: Region): Region[] {
-  const metadata = regionsMetadata.find(r => r.code === userRegion);
-  if (!metadata) return [];
-
-  const suggestions = new Set<Region>();
-
-  // Ajouter les voisins
-  metadata.neighbors.forEach(n => suggestions.add(n));
-
-  // Ajouter les régions du même groupe
-  regionsMetadata
-    .filter(r => r.group === metadata.group && r.code !== userRegion)
-    .forEach(r => suggestions.add(r.code));
-
-  return Array.from(suggestions);
 }

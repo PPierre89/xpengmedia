@@ -416,9 +416,6 @@ const translations: Record<string, Record<string, string>> = {
 const detectBrowserLocale = (): Locale => {
   const browserLang = navigator.language.toLowerCase();
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const userAgent = navigator.userAgent.toLowerCase();
-  
-  console.log('🌍 Détection auto:', { browserLang, timezone, userAgent: userAgent.substring(0, 100) });
   
   // Détection par timezone + langue combinées (plus précis)
   if (timezone === 'Europe/Paris' || timezone === 'Europe/Brussels' || browserLang.startsWith('fr')) {
@@ -500,19 +497,20 @@ const detectBrowserLocale = (): Locale => {
   }
   
   // France par défaut si impossible de déterminer
-  console.log('🇫🇷 Aucune région spécifique détectée, utilisation de France (FR) par défaut');
   return { region: 'france', language: 'fr' };
 };
 
 // Normaliser un locale potentiellement ancien ou incomplet issu du localStorage
-const normalizeLocale = (raw: any): Locale => {
+const normalizeLocale = (raw: unknown): Locale => {
+  const saved = (typeof raw === 'object' && raw !== null ? raw : {}) as Partial<Locale>;
+
   // Région valide ou défaut France
-  const regionEntry = regions.find((r) => r.code === raw?.region) || regions.find((r) => r.code === 'france')!;
+  const regionEntry = regions.find((r) => r.code === saved.region) || regions.find((r) => r.code === 'france')!;
   let language: string | undefined;
 
   // Si la langue sauvegardée existe dans les traductions, on la garde
-  if (raw && typeof raw.language === 'string' && translations[raw.language]) {
-    language = raw.language;
+  if (typeof saved.language === 'string' && translations[saved.language]) {
+    language = saved.language;
   }
 
   // Sinon, on prend la langue recommandée pour la région si possible
@@ -529,8 +527,6 @@ const normalizeLocale = (raw: any): Locale => {
     region: regionEntry.code,
     language,
   };
-
-  console.log('✅ Locale normalisé depuis localStorage:', normalized);
   return normalized;
 };
 
@@ -541,26 +537,22 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (saved) {
       try {
         const parsedLocale = JSON.parse(saved);
-        console.log('🔵 Locale brut chargé depuis localStorage:', parsedLocale);
         return normalizeLocale(parsedLocale);
       } catch (e) {
         console.warn('⚠️ Impossible de parser xpeng_locale, on retombe sur la détection automatique', e);
       }
     }
     const detectedLocale = detectBrowserLocale();
-    console.log('🔍 Locale détecté automatiquement:', detectedLocale);
     return detectedLocale;
   });
 
   // Sauvegarder dans localStorage à chaque changement
   useEffect(() => {
-    console.log('💾 Sauvegarde localStorage:', locale);
     localStorage.setItem('xpeng_locale', JSON.stringify(locale));
   }, [locale]);
 
   // Fonction setLocale avec useCallback pour stabiliser la référence
   const setLocale = useCallback((newLocale: Locale) => {
-    console.log('🔄 LocaleContext: Setting new locale', newLocale);
     setLocaleState(newLocale);
   }, []);
 

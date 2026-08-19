@@ -8,19 +8,8 @@ dist
 *.md
 docs
 
-# Scripts de maintenance one-shot (non nécessaires au build)
-audit-*.cjs
-fix-*.cjs
-replace-*.cjs
-force-*.cjs
-merge-categories.cjs
-refactor-categories.cjs
-cleanup-non-web-services.cjs
+# Scripts de test contenant des identifiants (jamais dans l'image)
 *.ps1
-audit-report.json
-broken-logos-report.json
-coherence-report.json
-
 
 # Docker lui-même
 Dockerfile

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { XMarkIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { useFavorites } from '../../context/FavoritesContext';
+import { useEnhancedFavorites } from '../../context/EnhancedFavoritesContext';
 import { useLocale } from '../../context/LocaleContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { PlatformLink } from '../../data/platforms';
@@ -17,7 +17,7 @@ export const AddServiceFromListModal: React.FC<AddServiceFromListModalProps> = (
   onClose,
   availableServices,
 }) => {
-  const { addFavorite, categories } = useFavorites();
+  const { addFavorite, categories } = useEnhancedFavorites();
   const { t } = useLocale();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');

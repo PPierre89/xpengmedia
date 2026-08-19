@@ -14,7 +14,7 @@
 
 ---
 
-### 214 services • 10 langues • 20 régions • Mode clair/sombre • 100% responsive
+### 200 services • 10 langues • 20 régions • Mode clair/sombre • 100% responsive
 
 ![XPENG Media Hub](https://img.shields.io/badge/Status-Production-brightgreen?style=flat-square)
 ![Version](https://img.shields.io/badge/Version-2.1.0-blue?style=flat-square)
@@ -48,7 +48,7 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 - **Filtrage intelligent** : Seuls les services disponibles dans votre région
 - **Suggestions de régions** basées sur la proximité géographique
 
-### 📺 **214 services organisés**
+### 📺 **200 services organisés**
 - **🎬 Vidéo** : 85+ services (Netflix, Disney+, Prime Video...)
 - **🎵 Musique** : 45+ services (Spotify, Apple Music, Deezer...)
 - **🎮 Jeux** : 35+ services (Steam, GeForce NOW, Xbox Cloud...)
@@ -189,7 +189,7 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 
 <div align="center">
 
-### 214 services • 5 catégories • Organisés par région
+### 200 services • 5 catégories • Organisés par région
 
 </div>
 
@@ -377,12 +377,12 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 
 | Catégorie | Nombre de services | % du total |
 |-----------|-------------------|------------|
-| 🎬 **Vidéo** | 85+ | 40% |
-| 🎵 **Musique** | 45+ | 21% |
-| 🎮 **Jeux** | 35+ | 16% |
-| 🔋 **Recharge** | 20+ | 9% |
-| 🌐 **Web** | 25+ | 12% |
-| **TOTAL** | **214** | **100%** |
+| 🎬 **Vidéo** | 118 | 59 % |
+| 🎵 **Musique** | 20 | 10 % |
+| 🎮 **Jeux** | 21 | 11 % |
+| 🔋 **Recharge** | 13 | 7 % |
+| 🌐 **Web** | 28 | 14 % |
+| **TOTAL** | **200** | **100 %** |
 
 </div>
 
@@ -493,7 +493,9 @@ xpengmedia/
 ├── src/
 │   ├── components/          # Composants React (favorites, icons, locale, modals…)
 │   ├── context/             # React Context (Favorites, Locale, Theme)
-│   ├── data/                # platforms.ts (214 services), regionsMetadata.ts
+│   ├── types/               # Types partagés (FavoriteItem…)
+│   ├── utils/               # Filtrage et comptage par région
+│   ├── data/                # platforms.ts (200 services), regionsMetadata.ts
 │   ├── hooks/               # Custom hooks
 │   ├── pages/               # Pages de l'application
 │   ├── App.tsx
@@ -530,7 +532,7 @@ xpengmedia/
 ## 🗺️ Roadmap
 
 ### ✅ Version 2.1 (Actuelle)
-- [x] 214 services disponibles
+- [x] 200 services disponibles
 - [x] 10 langues complètes
 - [x] Système de régionalisation dynamique
 - [x] Groupes régionaux intelligents
@@ -571,6 +573,20 @@ xpengmedia/
 
 #### 📚 Documentation
 - **docs/LOGOS.md** : nouveau document de référence ; les trois guides logos basés sur des CDN tiers partent dans `docs/archive/`
+
+#### 🧹 Nettoyage
+- **26 scripts one-shot** supprimés à la racine (`fix-ALL-*.cjs`, `replace-*.cjs`, `audit-*.cjs`…) ainsi que leurs rapports JSON : ils réécrivaient `platforms.ts` avec les anciennes URL de CDN et auraient annulé les logos embarqués si on les relançait
+- **Un seul contexte de favoris** : `FavoritesContext` et `EnhancedFavoritesContext` écrivaient tous les deux la clé `localStorage` « favorites » avec des formes incompatibles, chacun avec ses propres favoris par défaut. Le contexte enrichi est désormais le seul monté, et les favoris de l'ancien format sont migrés au chargement au lieu d'être écrasés
+- **Page « Mes favoris » branchée** : la page, sa grille, son formulaire et son contexte existaient mais n'étaient reliés à rien (aucune route, aucun provider monté, aucun lien) — route `/favorites` et entrées de navigation ajoutées
+- **Plus aucun fichier mort dans `src/`** (38/38 atteignables depuis `main.tsx`) : suppression de `App.css`, des assets inutilisés, de `FloatingActionButton`, de l'ancien `FavoritesContext` et de l'ancienne `FavoritesGrid`
+- **Exports morts retirés** : `getOrderedRegions`, `getRegionsByGroup`, `countPlatformsByCategory` et `getSuggestedRegionsForUser` (ce dernier dupliquait `getSuggestedRegions`)
+- **Traces de debug** : les 7 `console.log` du contexte de langue disparaissent (les avertissements et erreurs utiles restent)
+- **`npm run lint` passe** : dernier `no-explicit-any` corrigé dans `normalizeLocale`
+- **Statistiques du README** corrigées : le catalogue compte 200 services, pas 214
+
+#### 🐛 Corrections
+- **Formulaire de favori** : le champ URL était en `type="url"`, donc la validation native du navigateur refusait « netflix.com » avant même que le code — qui préfixe pourtant `https://` — ne s'exécute
+- **localStorage corrompu** : le chargement des favoris n'était pas protégé, un `JSON.parse` en échec empêchait toute l'application de démarrer
 
 ### **v2.3.0** — 2026-08-18 📱 PWA installable
 
