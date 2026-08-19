@@ -1,0 +1,63 @@
+{
+  "id": "/",
+  "name": "XPENG Media Hub",
+  "short_name": "XPENG Media",
+  "description": "Centre multimédia auto-hébergé pour XPENG : streaming, musique, jeux, recharge et player IPTV.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "fr",
+  "dir": "ltr",
+  "categories": [
+    "entertainment",
+    "multimedia"
+  ],
+  "icons": [
+    {
+      "src": "/icons/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/pwa/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Player IPTV",
+      "short_name": "IPTV",
+      "description": "Ouvrir directement le player IPTV",
+      "url": "/iptv-player.html",
+      "icons": [
+        {
+          "src": "/icons/pwa/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Tous les services",
+      "short_name": "Services",
+      "description": "Parcourir le catalogue complet des services",
+      "url": "/#/all-services"
+    }
+  ]
+}

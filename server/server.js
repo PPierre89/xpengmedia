@@ -601,18 +601,28 @@ async function serveStatic(req, res, pathname) {
   }
 
   const ext = path.extname(filePath).toLowerCase();
-  const isHtml = ext === '.html';
+  const base = path.basename(filePath);
+
+  // Le service worker et le manifeste pilotent les mises à jour de la PWA :
+  // les mettre en cache retarderait d'autant la prise en compte d'un
+  // redéploiement. Les assets hachés, eux, sont immuables par construction.
+  const isPwaControlFile = base === 'sw.js' || ext === '.webmanifest';
+  const isHashedAsset = filePath.includes(`${path.sep}assets${path.sep}`);
+
   const headers = {
     'Content-Type': MIME_TYPES[ext] || 'application/octet-stream',
     'Content-Length': stat.size,
     'X-Content-Type-Options': 'nosniff',
-    'Cache-Control': isHtml
-      ? 'no-cache'
-      : filePath.includes(`${path.sep}assets${path.sep}`)
-        ? 'public, max-age=31536000, immutable'
-        : 'public, max-age=3600',
+    'Cache-Control':
+      ext === '.html' || isPwaControlFile
+        ? 'no-cache'
+        : isHashedAsset
+          ? 'public, max-age=31536000, immutable'
+          : 'public, max-age=3600',
     'Last-Modified': stat.mtime.toUTCString(),
   };
+  // Autorise explicitement le SW à contrôler toute l'origine.
+  if (base === 'sw.js') headers['Service-Worker-Allowed'] = '/';
 
   res.writeHead(200, headers);
   if (req.method === 'HEAD') return res.end();
