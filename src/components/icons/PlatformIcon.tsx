@@ -1,10 +1,45 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface PlatformIconProps {
   icon: string;
   name: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+}
+
+// Palette de repli, dans les teintes de l'interface. La couleur est choisie de
+// façon déterministe à partir du nom du service : un même service garde donc
+// toujours la même vignette.
+const FALLBACK_COLORS = [
+  'from-cyan-500 to-blue-600',
+  'from-blue-500 to-indigo-600',
+  'from-indigo-500 to-violet-600',
+  'from-violet-500 to-fuchsia-600',
+  'from-rose-500 to-orange-500',
+  'from-amber-500 to-orange-600',
+  'from-emerald-500 to-teal-600',
+  'from-teal-500 to-cyan-600',
+];
+
+function hashString(value: string): number {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash * 31 + value.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+/** Initiales du service, en ignorant les drapeaux emoji des noms régionaux. */
+function initials(name: string): string {
+  const words = name
+    .replace(/[\u{1F1E6}-\u{1F1FF}]/gu, '')
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+
+  if (words.length === 0) return '?';
+  if (words.length === 1) return words[0]!.slice(0, 2).toUpperCase();
+  return (words[0]![0]! + words[1]![0]!).toUpperCase();
 }
 
 export const PlatformIcon: React.FC<PlatformIconProps> = ({
@@ -19,7 +54,7 @@ export const PlatformIcon: React.FC<PlatformIconProps> = ({
     md: 'w-13 h-13 min-w-[3.25rem] min-h-[3.25rem]',  // 52px - Normal
     lg: 'w-16 h-16 min-w-[4rem] min-h-[4rem]',        // 64px - Grand
   };
-  
+
   // Taille d'emoji réduite pour mobile
   const emojiSize = {
     sm: 'text-[1.375rem]', // 22px - Compact
@@ -34,12 +69,27 @@ export const PlatformIcon: React.FC<PlatformIconProps> = ({
     lg: 'w-12 h-12', // 48px
   };
 
+  const fallbackTextSize = {
+    sm: 'text-xs',
+    md: 'text-sm',
+    lg: 'text-base',
+  };
+
   // Détecter si c'est une URL (logo) ou un emoji
   const isUrl =
     icon.startsWith('http') ||
     icon.startsWith('/') ||
     icon.startsWith('data:') ||
     icon.startsWith('icons/');
+
+  // Un logo peut manquer si un favori enregistré pointe vers une ancienne URL.
+  // On affiche alors un monogramme aux couleurs de l'interface plutôt qu'une
+  // image cassée.
+  const [hasFailed, setHasFailed] = useState(false);
+  useEffect(() => setHasFailed(false), [icon]);
+
+  const showFallback = isUrl && hasFailed;
+  const fallbackColor = FALLBACK_COLORS[hashString(name) % FALLBACK_COLORS.length];
 
   return (
     <div
@@ -60,15 +110,29 @@ export const PlatformIcon: React.FC<PlatformIconProps> = ({
       `}
       aria-hidden="true"
     >
-      {isUrl ? (
-        // Logo réel EN COULEUR avec fond transparent
-        <img 
-          src={icon} 
-          alt={name || 'Service logo'} 
+      {showFallback ? (
+        // Repli : monogramme du service
+        <span
           className={`
-            ${imageSize[size]} 
-            object-contain 
-            transition-all 
+            ${imageSize[size]}
+            ${fallbackTextSize[size]}
+            flex items-center justify-center
+            rounded-lg
+            bg-gradient-to-br ${fallbackColor}
+            font-bold text-white
+          `}
+        >
+          {initials(name)}
+        </span>
+      ) : isUrl ? (
+        // Logo réel EN COULEUR avec fond transparent
+        <img
+          src={icon}
+          alt={name || 'Service logo'}
+          className={`
+            ${imageSize[size]}
+            object-contain
+            transition-all
             duration-200
             p-0.5
           `}
@@ -77,11 +141,7 @@ export const PlatformIcon: React.FC<PlatformIconProps> = ({
             imageRendering: 'crisp-edges',
           }}
           loading="lazy"
-          onError={(e) => {
-            // Fallback : si l'image ne charge pas, afficher un emoji par défaut
-            e.currentTarget.style.display = 'none';
-            e.currentTarget.parentElement!.innerHTML = '<span class="text-2xl">📱</span>';
-          }}
+          onError={() => setHasFailed(true)}
         />
       ) : (
         // Emoji (comportement actuel)

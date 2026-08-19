@@ -243,3 +243,56 @@ export function getRegionsByGroup(): Record<string, RegionMetadata[]> {
   
   return groups;
 }
+
+export type RegionSectionId = 'global' | 'suggested' | 'others';
+
+export interface RegionSection {
+  id: RegionSectionId;
+  regions: Region[];
+}
+
+/**
+ * Découpe la liste des régions en trois sections pour le sélecteur :
+ *
+ *   global     : le catalogue international, toujours en premier ;
+ *   suggested  : la région courante puis ses voisins / son groupe linguistique ;
+ *   others     : le reste, par ordre alphabétique.
+ *
+ * `availableRegions` est la liste réellement proposée par l'application : une
+ * région décrite ici mais absente de cette liste est ignorée. Les sections
+ * vides ne sont pas renvoyées.
+ */
+export function getRegionSections(
+  userRegion: Region,
+  availableRegions: Region[]
+): RegionSection[] {
+  const available = new Set(availableRegions);
+  const placed = new Set<Region>();
+
+  const take = (code: Region): boolean => {
+    if (!available.has(code) || placed.has(code)) return false;
+    placed.add(code);
+    return true;
+  };
+
+  const global: Region[] = take('global') ? ['global'] : [];
+
+  const suggested: Region[] = [];
+  if (userRegion !== 'global' && take(userRegion)) suggested.push(userRegion);
+  getSuggestedRegions(userRegion)
+    .filter((code) => code !== 'global')
+    .forEach((code) => {
+      if (take(code)) suggested.push(code);
+    });
+
+  const nameOf = (code: Region) => regionsMetadata.find((r) => r.code === code)?.name ?? code;
+  const others = availableRegions
+    .filter((code) => !placed.has(code))
+    .sort((a, b) => nameOf(a).localeCompare(nameOf(b)));
+
+  return ([
+    { id: 'global', regions: global },
+    { id: 'suggested', regions: suggested },
+    { id: 'others', regions: others },
+  ] as RegionSection[]).filter((section) => section.regions.length > 0);
+}

@@ -488,7 +488,8 @@ xpengmedia/
 ├── public/                  # Fichiers statiques (dont iptv-player.html)
 │   ├── sw.js                # Service worker de la PWA
 │   ├── manifest.webmanifest # Manifeste PWA
-│   └── icons/pwa/           # Icônes d'installation
+│   ├── icons/pwa/           # Icônes d'installation
+│   └── icons/services/      # Logos des services (générés, voir docs/LOGOS.md)
 ├── src/
 │   ├── components/          # Composants React (favorites, icons, locale, modals…)
 │   ├── context/             # React Context (Favorites, Locale, Theme)
@@ -497,7 +498,7 @@ xpengmedia/
 │   ├── pages/               # Pages de l'application
 │   ├── App.tsx
 │   └── main.tsx
-├── scripts/                 # Génération des icônes, post-build, tests PWA
+├── scripts/                 # Génération des icônes et des logos, post-build, tests PWA
 ├── docs/                    # Documentation des systèmes (régions, langues, logos)
 │   └── archive/             # Documentation historique — ne plus suivre
 ├── Dockerfile               # Image tout-en-un pour l'auto-hébergement
@@ -519,10 +520,10 @@ xpengmedia/
 | **[DEPLOY-NAS-UGREEN.md](DEPLOY-NAS-UGREEN.md)** | Déploiement auto-hébergé pas à pas (NAS UGREEN, Docker), variables d'environnement, modèle de sécurité du proxy, dépannage |
 | [docs/REGIONAL_SYSTEM.md](docs/REGIONAL_SYSTEM.md) | Système de régionalisation dynamique |
 | [docs/LOCALE_SYSTEM.md](docs/LOCALE_SYSTEM.md) | Système de localisation et de traduction |
-| [docs/LOGOS_GUIDE.md](docs/LOGOS_GUIDE.md) • [docs/LOGOS_COULEUR.md](docs/LOGOS_COULEUR.md) • [docs/LOGOS_MAPPING.md](docs/LOGOS_MAPPING.md) | Gestion des logos de services |
+| [docs/LOGOS.md](docs/LOGOS.md) | Logos des services : génération, sources, ajout d'un service |
 | [docs/DEBUG_LOCALE.md](docs/DEBUG_LOCALE.md) | Notes de débogage du changement de langue |
 | [docs/ENRICHMENT_PLAN.md](docs/ENRICHMENT_PLAN.md) • [docs/S3XYTHEATER_ANALYSIS.md](docs/S3XYTHEATER_ANALYSIS.md) | Analyses et pistes d'enrichissement du catalogue |
-| [docs/archive/](docs/archive/) | 📦 Documentation historique (proxies cloud Vercel/Netlify/Cloudflare). **Périmée** : le proxy local la remplace entièrement |
+| [docs/archive/](docs/archive/) | 📦 Documentation historique (proxies cloud Vercel/Netlify/Cloudflare, anciens guides logos basés sur des CDN tiers). **Périmée** |
 
 ---
 
@@ -537,12 +538,12 @@ xpengmedia/
 - [x] Support logos réels (URLs + emojis)
 - [x] Changement langue instantané
 
-### 🔄 Version 2.2 (Prochaine)
-- [ ] Intégration logos réels pour tous les services
-- [ ] Sections dans LocaleSelector (Global, Suggérés, Autres)
-- [ ] Badges nombre de services par région
-- [ ] PWA (Progressive Web App)
-- [ ] Mode hors-ligne
+### ✅ Version 2.4
+- [x] Intégration logos réels pour tous les services (embarqués, hors ligne)
+- [x] Sections dans LocaleSelector (Global, Suggérés, Autres)
+- [x] Badges nombre de services par région
+- [x] PWA (Progressive Web App)
+- [x] Mode hors-ligne
 
 ### 🚀 Version 3.0 (Futur)
 - [ ] Intégration API XPENG
@@ -554,6 +555,22 @@ xpengmedia/
 ---
 
 ## 📝 Changelog
+
+### **v2.4.0** — 2026-08-19 🎨 Logos embarqués & sélecteur de région
+
+#### 🆕 Nouvelles fonctionnalités
+- **Logos réels pour les 200 services, embarqués dans l'application** : plus aucun appel à un CDN tiers, donc des vignettes qui s'affichent hors ligne et au démarrage dans la voiture. Marques officielles issues de Simple Icons quand elles existent, logotypes aux couleurs de la marque pour les diffuseurs européens, pictogrammes pour les outils XPENG embarqués
+- **Génération scriptée et vérifiable** : `npm run logos` régénère tout et met à jour `platforms.ts`, `npm run logos:check` échoue si le dépôt n'est plus à jour ou si un service n'a pas de logo déclaré
+- **Sections dans le sélecteur de région** : Global, Suggérés (région courante et ses voisins), Autres
+- **Badges par région** : nombre de services du catalogue réellement disponibles dans chaque pays, dans le menu et sur le bouton
+
+#### 🐛 Corrections
+- **35 logos cassés** : autant de slugs `cdn.simpleicons.org` ne correspondaient plus à aucune icône et renvoyaient une 404 (Hulu, ESPN+, Xbox Cloud, BBC iPlayer, ChargePoint, TuneIn…)
+- **Repli d'icône** : un logo manquant affiche désormais le monogramme du service au lieu d'un emoji 📱 injecté en `innerHTML`
+- **Journalisation** : le filtrage par région ne trace plus chaque service dans la console à chaque rendu
+
+#### 📚 Documentation
+- **docs/LOGOS.md** : nouveau document de référence ; les trois guides logos basés sur des CDN tiers partent dans `docs/archive/`
 
 ### **v2.3.0** — 2026-08-18 📱 PWA installable
 
