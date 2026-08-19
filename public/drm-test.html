@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>🔐 Diagnostic DRM — XPENG Media Hub</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 1.5rem;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: #0f172a; color: #f1f5f9; line-height: 1.55;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 .25rem; }
+  .sub { color: #94a3b8; margin: 0 0 1.5rem; font-size: .95rem; }
+  .verdict {
+    border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem;
+    border: 1px solid #334155; background: #1e293b; font-size: 1.05rem;
+  }
+  .verdict.ok   { border-color: #15803d; background: #052e16; }
+  .verdict.warn { border-color: #a16207; background: #2a1f04; }
+  .verdict.ko   { border-color: #b91c1c; background: #2c0b0b; }
+  .verdict h2 { margin: 0 0 .4rem; font-size: 1.15rem; }
+  section { margin-bottom: 1.75rem; }
+  h3 { font-size: 1rem; color: #00d9ff; margin: 0 0 .6rem; text-transform: uppercase; letter-spacing: .04em; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  td { padding: .55rem .6rem; border-bottom: 1px solid #1e293b; vertical-align: top; }
+  td:first-child { color: #cbd5e1; width: 45%; }
+  .pill { display: inline-block; padding: .1rem .55rem; border-radius: 999px; font-size: .8rem; font-weight: 600; }
+  .yes { background: #052e16; color: #4ade80; border: 1px solid #15803d; }
+  .no  { background: #2c0b0b; color: #f87171; border: 1px solid #b91c1c; }
+  .na  { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+  .note { font-size: .88rem; color: #94a3b8; background: #1e293b; border-left: 3px solid #334155; padding: .75rem 1rem; border-radius: 0 8px 8px 0; }
+  code { background: #1e293b; padding: .1rem .35rem; border-radius: 4px; font-size: .88em; }
+  .ua { word-break: break-all; font-size: .8rem; color: #64748b; }
+  a { color: #00d9ff; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔐 Diagnostic DRM</h1>
+  <p class="sub">
+    Les services premium (myCANAL, Netflix, Disney+, Prime Video…) chiffrent leurs flux.
+    Cette page interroge ce navigateur pour déterminer ce qu'il est capable de déchiffrer.
+    Aucune donnée n'est envoyée nulle part : tout se passe localement.
+  </p>
+
+  <div id="verdict" class="verdict">Analyse en cours…</div>
+
+  <section>
+    <h3>Widevine — utilisé par myCANAL, Netflix, Disney+</h3>
+    <table id="widevine"></table>
+  </section>
+
+  <section>
+    <h3>Autres systèmes de protection</h3>
+    <table id="others"></table>
+  </section>
+
+  <section>
+    <h3>Contexte</h3>
+    <table id="context"></table>
+  </section>
+
+  <section>
+    <h3>Comment lire ce résultat</h3>
+    <div class="note">
+      <p style="margin-top:0"><strong>L1 (matériel)</strong> — déchiffrement dans une zone sécurisée du processeur.
+      C'est ce qu'exigent la plupart des services pour la HD et la 4K.</p>
+      <p><strong>L3 (logiciel)</strong> — déchiffrement logiciel. Beaucoup de services le limitent
+      à la définition standard, voire le refusent.</p>
+      <p style="margin-bottom:0">Sans Widevine du tout, aucun contenu protégé ne peut être lu dans ce navigateur —
+      c'est une limite du navigateur lui-même, qu'aucune application ne peut contourner légalement.
+      La solution est alors l'application native du service, si elle est disponible sur ce véhicule.</p>
+    </div>
+  </section>
+</div>
+
+<script>
+const VIDEO_TYPE = 'video/mp4; codecs="avc1.42E01E"';
+const AUDIO_TYPE = 'audio/mp4; codecs="mp4a.40.2"';
+
+/** Niveaux de robustesse Widevine, du plus faible au plus fort. */
+const ROBUSTNESS = [
+  { level: 'SW_SECURE_CRYPTO',  label: 'L3 — déchiffrement logiciel' },
+  { level: 'SW_SECURE_DECODE',  label: 'L3 — décodage logiciel' },
+  { level: 'HW_SECURE_CRYPTO',  label: 'L2 — déchiffrement matériel' },
+  { level: 'HW_SECURE_DECODE',  label: 'L1 — décodage matériel' },
+  { level: 'HW_SECURE_ALL',     label: 'L1 — chaîne matérielle complète' },
+];
+
+function pill(state, text) {
+  const cls = state === true ? 'yes' : state === false ? 'no' : 'na';
+  return `<span class="pill ${cls}">${text}</span>`;
+}
+
+function row(table, label, html) {
+  table.insertAdjacentHTML('beforeend', `<tr><td>${label}</td><td>${html}</td></tr>`);
+}
+
+async function testKeySystem(keySystem, robustness) {
+  if (!navigator.requestMediaKeySystemAccess) return { ok: false, reason: 'EME absent' };
+  const config = [{
+    initDataTypes: ['cenc'],
+    videoCapabilities: [{ contentType: VIDEO_TYPE, ...(robustness ? { robustness } : {}) }],
+    audioCapabilities: [{ contentType: AUDIO_TYPE }],
+  }];
+  try {
+    const access = await navigator.requestMediaKeySystemAccess(keySystem, config);
+    return { ok: true, access };
+  } catch (e) {
+    return { ok: false, reason: e.name || 'non supporté' };
+  }
+}
+
+async function run() {
+  const wv = document.getElementById('widevine');
+  const others = document.getElementById('others');
+  const ctx = document.getElementById('context');
+
+  // --- Contexte ---
+  row(ctx, 'Origine sécurisée (HTTPS)', pill(window.isSecureContext, window.isSecureContext ? 'oui' : 'non'));
+  row(ctx, 'API EME disponible', pill(!!navigator.requestMediaKeySystemAccess,
+        navigator.requestMediaKeySystemAccess ? 'oui' : 'non'));
+  row(ctx, 'Media Source Extensions', pill(!!window.MediaSource, window.MediaSource ? 'oui' : 'non'));
+  row(ctx, 'Navigateur', `<span class="ua">${navigator.userAgent}</span>`);
+
+  if (!window.isSecureContext) {
+    row(ctx, '', '<span class="na">⚠️ Hors HTTPS, l\'API DRM est souvent désactivée : ce résultat peut être faussé.</span>');
+  }
+
+  // --- Widevine, niveau par niveau ---
+  let bestLevel = null;
+  const base = await testKeySystem('com.widevine.alpha', null);
+  row(wv, 'Widevine (sans contrainte)', pill(base.ok, base.ok ? 'supporté' : base.reason));
+
+  if (base.ok) {
+    for (const { level, label } of ROBUSTNESS) {
+      const r = await testKeySystem('com.widevine.alpha', level);
+      if (r.ok) bestLevel = label;
+      row(wv, label, pill(r.ok, r.ok ? 'oui' : 'non'));
+    }
+
+    // HDCP : certains services l'exigent pour la HD
+    try {
+      const keys = await base.access.createMediaKeys();
+      if (keys.getStatusForPolicy) {
+        const status = await keys.getStatusForPolicy({ minHdcpVersion: '2.2' });
+        row(wv, 'HDCP 2.2', pill(status === 'usable', status));
+      }
+    } catch { /* non déterminable, sans conséquence */ }
+  }
+
+  // --- Autres systèmes ---
+  for (const [ks, name] of [
+    ['com.microsoft.playready', 'PlayReady (Edge, certains téléviseurs)'],
+    ['com.apple.fps', 'FairPlay (Safari / Apple)'],
+    ['org.w3.clearkey', 'Clear Key (test, non commercial)'],
+  ]) {
+    const r = await testKeySystem(ks, null);
+    row(others, name, pill(r.ok, r.ok ? 'supporté' : 'non'));
+  }
+
+  // --- Verdict ---
+  const v = document.getElementById('verdict');
+  if (!navigator.requestMediaKeySystemAccess) {
+    v.className = 'verdict ko';
+    v.innerHTML = `<h2>❌ Aucun contenu protégé lisible</h2>
+      Ce navigateur n'expose pas l'API de déchiffrement (EME). myCANAL et les autres
+      services premium ne peuvent pas fonctionner ici. Utilise l'application native du
+      service si le véhicule la propose.`;
+  } else if (!base.ok) {
+    v.className = 'verdict ko';
+    v.innerHTML = `<h2>❌ Widevine indisponible</h2>
+      L'API DRM existe, mais Widevine n'est pas installé (<code>${base.reason}</code>).
+      myCANAL, Netflix et Disney+ ne pourront pas lire leurs flux dans ce navigateur.`;
+  } else if (bestLevel && bestLevel.startsWith('L1')) {
+    v.className = 'verdict ok';
+    v.innerHTML = `<h2>✅ Widevine L1 disponible</h2>
+      Ce navigateur devrait lire myCANAL, y compris en haute définition, avec un
+      abonnement valide. Si la lecture échoue malgré tout, la cause est côté service
+      (appareil non reconnu) et non côté navigateur.`;
+  } else {
+    v.className = 'verdict warn';
+    v.innerHTML = `<h2>⚠️ Widevine L3 uniquement</h2>
+      Le déchiffrement est logiciel (${bestLevel || 'niveau non déterminé'}).
+      myCANAL peut fonctionner en définition réduite, ou refuser la lecture :
+      plusieurs services exigent le L1 pour leurs contenus.`;
+  }
+}
+
+run().catch((e) => {
+  const v = document.getElementById('verdict');
+  v.className = 'verdict ko';
+  v.textContent = 'Le diagnostic a échoué : ' + e.message;
+});
+</script>
+</body>
+</html>
