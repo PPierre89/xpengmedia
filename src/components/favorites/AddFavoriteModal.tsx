@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useFavorites } from '../../context/FavoritesContext';
+import { useEnhancedFavorites } from '../../context/EnhancedFavoritesContext';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { useLocale } from '../../context/LocaleContext';
 
@@ -14,7 +14,7 @@ export const AddFavoriteModal: React.FC<AddFavoriteModalProps> = ({
   onClose,
   defaultCategory = '',
 }) => {
-  const { addFavorite, categories } = useFavorites();
+  const { addFavorite, categories } = useEnhancedFavorites();
   const { t } = useLocale();
   const [formData, setFormData] = useState({
     name: '',

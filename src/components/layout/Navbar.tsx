@@ -30,6 +30,7 @@ export const Navbar: React.FC = () => {
             { nameKey: 'games', path: '/games' },
             { nameKey: 'charging', path: '/charging' },
             { nameKey: 'allServices', path: '/all-services' },
+            { nameKey: 'myFavorites', path: '/favorites' },
             { nameKey: 'others', path: '/other-services' },
           ].map((item) => (
             <NavLink

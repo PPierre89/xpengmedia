@@ -6,6 +6,7 @@ import { Navbar } from './components/layout/Navbar';
 import { Sidebar } from './components/layout/Sidebar';
 import { Footer } from './components/layout/Footer';
 import { CategoriesPage } from './pages/CategoriesPage';
+import { FavoritesPage } from './pages/FavoritesPage';
 import AllServicesPage from './pages/AllServicesPage';
 import VideosPage from './pages/VideosPage';
 import MusicPage from './pages/MusicPage';
@@ -36,6 +37,7 @@ export default function App() {
                 <Route path="/charging" element={<ChargingPage />} />
                 <Route path="/other-services" element={<OtherServicesPage />} />
                 <Route path="/all-services" element={<AllServicesPage />} />
+                <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/categories" element={<CategoriesPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />

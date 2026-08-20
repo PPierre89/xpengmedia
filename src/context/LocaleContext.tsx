@@ -62,6 +62,10 @@ const translations: Record<string, Record<string, string>> = {
     searchPlaceholder: 'Search services...',
     selectRegion: 'Select region',
     allServices: 'All services',
+    regionSectionGlobal: 'Global',
+    regionSectionSuggested: 'Suggested',
+    regionSectionOthers: 'Others',
+    servicesLabel: 'services',
     heroTitle: 'An immersive cabin, your favorite platforms',
     heroSubtitle: 'Interface optimized for Xmart OS with video, music, games and charging services.',
     searchBarPlaceholder: 'Search a site or a category...',
@@ -129,6 +133,10 @@ const translations: Record<string, Record<string, string>> = {
     searchPlaceholder: 'Rechercher des services...',
     selectRegion: 'Sélectionner la région',
     allServices: 'Tous les services',
+    regionSectionGlobal: 'Global',
+    regionSectionSuggested: 'Suggérés',
+    regionSectionOthers: 'Autres',
+    servicesLabel: 'services',
     heroTitle: 'Une cabine immersive, vos plateformes favorites',
     heroSubtitle: 'Interface optimisée pour Xmart OS avec services vidéo, musique, jeux et recharge.',
     searchBarPlaceholder: 'Rechercher un site, une catégorie...',
@@ -197,6 +205,10 @@ const translations: Record<string, Record<string, string>> = {
     searchPlaceholder: 'Dienste suchen...',
     selectRegion: 'Region auswählen',
     allServices: 'Alle Dienste',
+    regionSectionGlobal: 'Global',
+    regionSectionSuggested: 'Vorschläge',
+    regionSectionOthers: 'Andere',
+    servicesLabel: 'Dienste',
     heroTitle: 'Eine immersive Kabine, Ihre Lieblingsplattformen',
     heroSubtitle: 'Für Xmart OS optimierte Oberfläche mit Video-, Musik-, Spiele- und Ladediensten.',
   },
@@ -215,6 +227,10 @@ const translations: Record<string, Record<string, string>> = {
     searchPlaceholder: 'Buscar servicios...',
     selectRegion: 'Seleccionar región',
     allServices: 'Todos los servicios',
+    regionSectionGlobal: 'Global',
+    regionSectionSuggested: 'Sugeridos',
+    regionSectionOthers: 'Otros',
+    servicesLabel: 'servicios',
     heroTitle: 'Una cabina inmersiva, tus plataformas favoritas',
     heroSubtitle: 'Interfaz optimizada para Xmart OS con servicios de vídeo, música, juegos y carga.',
   },
@@ -233,6 +249,10 @@ const translations: Record<string, Record<string, string>> = {
     searchPlaceholder: '搜索服务...',
     selectRegion: '选择地区',
     allServices: '所有服务',
+    regionSectionGlobal: '全球',
+    regionSectionSuggested: '推荐',
+    regionSectionOthers: '其他',
+    servicesLabel: '项服务',
     heroTitle: '沉浸式座舱，您喜爱的平台',
     heroSubtitle: '为Xmart OS优化的界面，提供视频、音乐、游戏和充电服务。',
   },
@@ -251,6 +271,10 @@ const translations: Record<string, Record<string, string>> = {
     searchPlaceholder: 'Cerca servizi...',
     selectRegion: 'Seleziona regione',
     allServices: 'Tutti i servizi',
+    regionSectionGlobal: 'Globale',
+    regionSectionSuggested: 'Suggeriti',
+    regionSectionOthers: 'Altri',
+    servicesLabel: 'servizi',
     heroTitle: 'Una cabina immersiva, le tue piattaforme preferite',
     heroSubtitle: 'Interfaccia ottimizzata per Xmart OS con servizi video, musica, giochi e ricarica.',
   },
@@ -269,6 +293,10 @@ const translations: Record<string, Record<string, string>> = {
     searchPlaceholder: 'Zoek services...',
     selectRegion: 'Selecteer regio',
     allServices: 'Alle services',
+    regionSectionGlobal: 'Globaal',
+    regionSectionSuggested: 'Voorgesteld',
+    regionSectionOthers: 'Overige',
+    servicesLabel: 'services',
     heroTitle: 'Een meeslepende cabine, uw favoriete platforms',
     heroSubtitle: 'Interface geoptimaliseerd voor Xmart OS met video-, muziek-, game- en laasdiensten.',
   },
@@ -287,6 +315,10 @@ const translations: Record<string, Record<string, string>> = {
     searchPlaceholder: 'Sök tjänster...',
     selectRegion: 'Välj region',
     allServices: 'Alla tjänster',
+    regionSectionGlobal: 'Global',
+    regionSectionSuggested: 'Föreslagna',
+    regionSectionOthers: 'Övriga',
+    servicesLabel: 'tjänster',
     heroTitle: 'En fördjúpande hytt, dina favoritplattformar',
     heroSubtitle: 'Gränssnitt optimerat för Xmart OS med video-, musik-, spel- och laddningstjänster.',
   },
@@ -305,6 +337,10 @@ const translations: Record<string, Record<string, string>> = {
     searchPlaceholder: 'Søk tjenester...',
     selectRegion: 'Velg region',
     allServices: 'Alle tjenester',
+    regionSectionGlobal: 'Global',
+    regionSectionSuggested: 'Foreslåtte',
+    regionSectionOthers: 'Andre',
+    servicesLabel: 'tjenester',
     heroTitle: 'En oppslukende kabin, dine favorittplattformer',
     heroSubtitle: 'Grensesnitt optimalisert for Xmart OS med video-, musikk-, spill- og ladetjenester.',
   },
@@ -323,6 +359,10 @@ const translations: Record<string, Record<string, string>> = {
     searchPlaceholder: 'Søg tjenester...',
     selectRegion: 'Vælg region',
     allServices: 'Alle tjenester',
+    regionSectionGlobal: 'Global',
+    regionSectionSuggested: 'Foreslåede',
+    regionSectionOthers: 'Andre',
+    servicesLabel: 'tjenester',
     heroTitle: 'En fordybende kabine, dine yndlingsplatforme',
     heroSubtitle: 'Grænseflade optimeret til Xmart OS med video-, musik-, spil- og opladningstjenester.',
   },
@@ -341,6 +381,10 @@ const translations: Record<string, Record<string, string>> = {
     searchPlaceholder: 'ابحث عن الخدمات...',
     selectRegion: 'اختر المنطقة',
     allServices: 'جميع الخدمات',
+    regionSectionGlobal: 'عالمي',
+    regionSectionSuggested: 'مقترحة',
+    regionSectionOthers: 'أخرى',
+    servicesLabel: 'خدمات',
     heroTitle: 'كابينة غامرة، منصاتك المفضلة',
     heroSubtitle: 'واجهة محسّنة لـ Xmart OS مع خدمات الفيديو والموسيقى والألعاب والشحن.',
   },
@@ -359,6 +403,10 @@ const translations: Record<string, Record<string, string>> = {
     searchPlaceholder: 'חפש שירותים...',
     selectRegion: 'בחר אזור',
     allServices: 'כל השירותים',
+    regionSectionGlobal: 'גלובלי',
+    regionSectionSuggested: 'מוצעים',
+    regionSectionOthers: 'אחרים',
+    servicesLabel: 'שירותים',
     heroTitle: 'תא מרשים, הפלטפורמות המועדפות שלך',
     heroSubtitle: 'ממשק מאופטמל עבור Xmart OS עם שירותי וידאו, מוזיקה, משחקים וטעינה.',
   },
@@ -368,9 +416,6 @@ const translations: Record<string, Record<string, string>> = {
 const detectBrowserLocale = (): Locale => {
   const browserLang = navigator.language.toLowerCase();
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const userAgent = navigator.userAgent.toLowerCase();
-  
-  console.log('🌍 Détection auto:', { browserLang, timezone, userAgent: userAgent.substring(0, 100) });
   
   // Détection par timezone + langue combinées (plus précis)
   if (timezone === 'Europe/Paris' || timezone === 'Europe/Brussels' || browserLang.startsWith('fr')) {
@@ -452,19 +497,20 @@ const detectBrowserLocale = (): Locale => {
   }
   
   // France par défaut si impossible de déterminer
-  console.log('🇫🇷 Aucune région spécifique détectée, utilisation de France (FR) par défaut');
   return { region: 'france', language: 'fr' };
 };
 
 // Normaliser un locale potentiellement ancien ou incomplet issu du localStorage
-const normalizeLocale = (raw: any): Locale => {
+const normalizeLocale = (raw: unknown): Locale => {
+  const saved = (typeof raw === 'object' && raw !== null ? raw : {}) as Partial<Locale>;
+
   // Région valide ou défaut France
-  const regionEntry = regions.find((r) => r.code === raw?.region) || regions.find((r) => r.code === 'france')!;
+  const regionEntry = regions.find((r) => r.code === saved.region) || regions.find((r) => r.code === 'france')!;
   let language: string | undefined;
 
   // Si la langue sauvegardée existe dans les traductions, on la garde
-  if (raw && typeof raw.language === 'string' && translations[raw.language]) {
-    language = raw.language;
+  if (typeof saved.language === 'string' && translations[saved.language]) {
+    language = saved.language;
   }
 
   // Sinon, on prend la langue recommandée pour la région si possible
@@ -481,8 +527,6 @@ const normalizeLocale = (raw: any): Locale => {
     region: regionEntry.code,
     language,
   };
-
-  console.log('✅ Locale normalisé depuis localStorage:', normalized);
   return normalized;
 };
 
@@ -493,26 +537,22 @@ export const LocaleProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (saved) {
       try {
         const parsedLocale = JSON.parse(saved);
-        console.log('🔵 Locale brut chargé depuis localStorage:', parsedLocale);
         return normalizeLocale(parsedLocale);
       } catch (e) {
         console.warn('⚠️ Impossible de parser xpeng_locale, on retombe sur la détection automatique', e);
       }
     }
     const detectedLocale = detectBrowserLocale();
-    console.log('🔍 Locale détecté automatiquement:', detectedLocale);
     return detectedLocale;
   });
 
   // Sauvegarder dans localStorage à chaque changement
   useEffect(() => {
-    console.log('💾 Sauvegarde localStorage:', locale);
     localStorage.setItem('xpeng_locale', JSON.stringify(locale));
   }, [locale]);
 
   // Fonction setLocale avec useCallback pour stabiliser la référence
   const setLocale = useCallback((newLocale: Locale) => {
-    console.log('🔄 LocaleContext: Setting new locale', newLocale);
     setLocaleState(newLocale);
   }, []);
 

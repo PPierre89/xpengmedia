@@ -57,12 +57,21 @@ Toutes les icônes suivent le même design XPENG :
   - Active: scale-95
   - Animation spring pour apparition/disparition
 
+## Contenu du dossier
+
+- `services/` : logo de chaque service du catalogue, **généré** par
+  `npm run logos`. Ne pas éditer à la main — voir
+  [docs/LOGOS.md](../../docs/LOGOS.md) et
+  [services/README.md](services/README.md).
+- `pwa/` : icônes d'installation de la PWA, générées par `npm run icons`.
+
 ## Notes techniques
 
-Le système utilise des emojis Unicode pour les icônes, ce qui assure :
-- ✅ Compatibilité universelle (pas de dépendance externe)
-- ✅ Taille de bundle minimale
-- ✅ Pas de requêtes réseau supplémentaires
-- ✅ Support natif des couleurs emoji
+Tous les logos sont des SVG servis depuis `/public`, donc :
+- ✅ Aucune requête vers un CDN tiers
+- ✅ Disponibles hors ligne, mis en cache par le service worker
+- ✅ Nets à toutes les tailles, poids négligeable (~170 Ko pour 200 logos)
 
-Pour des icônes SVG personnalisées, placer les fichiers dans ce dossier.
+`PlatformIcon` accepte aussi un emoji : les favoris créés par l'utilisateur en
+utilisent par défaut. Si une image ne charge pas, le composant affiche le
+monogramme du service plutôt qu'une vignette cassée.

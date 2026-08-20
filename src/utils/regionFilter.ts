@@ -1,7 +1,13 @@
 // Utilitaire pour filtrer les services selon la région sélectionnée
 import type { Region } from '../context/LocaleContext';
 import type { PlatformLink } from '../data/platforms';
-import { regionsMetadata } from '../data/regionsMetadata';
+import {
+  videoCategories,
+  musicCategories,
+  gamesCategories,
+  chargingCategories,
+  otherServicesCategories,
+} from '../data/platforms';
 
 // Mapping des régions vers leurs groupes d'availability
 // IMPORTANT : utiliser uniquement des valeurs réellement présentes dans AvailabilityScope
@@ -49,61 +55,35 @@ const regionToAvailabilityMap: Record<Region, string[]> = {
 export function filterPlatformsByRegion(platforms: PlatformLink[], userRegion: Region): PlatformLink[] {
   // Récupérer les availability acceptables pour cette région
   const acceptedAvailability = regionToAvailabilityMap[userRegion] || ['global'];
-  
-  console.log(`🌍 Filtrage pour région: ${userRegion}`, {
-    acceptedAvailability,
-    totalPlatforms: platforms.length
-  });
-  
-  // Filtrer les plateformes
-  const filtered = platforms.filter(platform => {
-    // Vérifier si au moins une des availability de la plateforme correspond
-    const isAvailable = platform.availability.some((avail: string) => 
-      acceptedAvailability.includes(avail)
-    );
-    
-    if (!isAvailable) {
-      console.log(`❌ ${platform.name} non disponible pour ${userRegion}`, {
-        platformAvailability: platform.availability,
-        acceptedAvailability
-      });
-    }
-    
-    return isAvailable;
-  });
-  
-  console.log(`✅ ${filtered.length} services disponibles pour ${userRegion}`);
-  
-  return filtered;
+
+  return platforms.filter((platform) =>
+    platform.availability.some((avail: string) => acceptedAvailability.includes(avail))
+  );
 }
 
-/**
- * Compte les services disponibles par catégorie pour une région
- */
-export function countPlatformsByCategory(
-  platforms: PlatformLink[],
-  userRegion: Region
-): number {
-  const filtered = filterPlatformsByRegion(platforms, userRegion);
-  return filtered.length;
-}
+// Catalogue complet, à plat : sert au comptage par région.
+const allPlatforms: PlatformLink[] = [
+  videoCategories,
+  musicCategories,
+  gamesCategories,
+  chargingCategories,
+  otherServicesCategories,
+]
+  .flat()
+  .flatMap((category) => category.platforms);
+
+// Le catalogue est statique : le comptage n'est fait qu'une fois par région.
+const serviceCountCache = new Map<Region, number>();
 
 /**
- * Obtient la liste des régions suggérées basées sur la région actuelle
+ * Nombre total de services du catalogue disponibles dans une région.
+ * Utilisé par le sélecteur de région pour afficher un badge par pays.
  */
-export function getSuggestedRegionsForUser(userRegion: Region): Region[] {
-  const metadata = regionsMetadata.find(r => r.code === userRegion);
-  if (!metadata) return [];
-  
-  const suggestions = new Set<Region>();
-  
-  // Ajouter les voisins
-  metadata.neighbors.forEach(n => suggestions.add(n));
-  
-  // Ajouter les régions du même groupe
-  regionsMetadata
-    .filter(r => r.group === metadata.group && r.code !== userRegion)
-    .forEach(r => suggestions.add(r.code));
-  
-  return Array.from(suggestions);
+export function countServicesForRegion(userRegion: Region): number {
+  const cached = serviceCountCache.get(userRegion);
+  if (cached !== undefined) return cached;
+
+  const count = filterPlatformsByRegion(allPlatforms, userRegion).length;
+  serviceCountCache.set(userRegion, count);
+  return count;
 }

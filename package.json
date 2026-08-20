@@ -15,7 +15,9 @@
     "test:pwa": "node --test scripts/sw.test.mjs",
     "test": "node --test server/security.test.mjs scripts/sw.test.mjs",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "logos": "node scripts/generate-service-logos.mjs",
+    "logos:check": "node scripts/generate-service-logos.mjs --check"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",
@@ -43,6 +45,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "postcss": "^8.5.6",
+    "simple-icons": "^16.28.0",
     "tailwindcss": "^3.4.13",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "~5.9.3",
