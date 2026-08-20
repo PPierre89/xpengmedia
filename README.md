@@ -14,10 +14,10 @@
 
 ---
 
-### 200 services • 12 langues • 20 régions • Mode clair/sombre • 100% responsive
+### 200 services • 12 langues • 21 régions • Mode clair/sombre • 100% responsive
 
 ![XPENG Media Hub](https://img.shields.io/badge/Status-Production-brightgreen?style=flat-square)
-![Version](https://img.shields.io/badge/Version-2.5.1-blue?style=flat-square)
+![Version](https://img.shields.io/badge/Version-2.6.0-blue?style=flat-square)
 ![Licence](https://img.shields.io/badge/Licence-MIT-yellow?style=flat-square)
 
 </div>
@@ -45,7 +45,7 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 ### 🌍 **Multi-régional et multilingue**
 - **12 langues** : anglais et français complets, 10 autres sur les écrans principaux
 - **Détection automatique** de la langue et de la région, par fuseau horaire + navigateur
-- **Filtrage** : seuls les services disponibles dans votre région
+- **Filtrage strict** : une chaîne française n'apparaît pas quand la région est réglée sur l'Allemagne
 - **Suggestions de régions** basées sur la proximité géographique et linguistique
 
 ### 📺 **200 services organisés**
@@ -81,13 +81,13 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 
 <div align="center">
 
-### 20 régions • 6 groupes • Suggestions intelligentes
+### 21 régions • 6 groupes • Suggestions intelligentes
 
 </div>
 
 ### **🌍 Global / International**
 - **Langue** : Anglais (EN)
-- **Services** : 111 services universels
+- **Services** : 98 services universels
 - **Description** : Services accessibles partout dans le monde
 
 ---
@@ -118,9 +118,10 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 
 | Pays | Drapeau | Langues | Voisins | Services spécifiques |
 |------|---------|---------|---------|----------------------|
-| **Suède** | 🇸🇪 | Suédois | 🇳🇴 🇩🇰 | Services SE |
-| **Norvège** | 🇳🇴 | Norvégien | 🇸🇪 🇩🇰 | Services NO |
-| **Danemark** | 🇩🇰 | Danois | 🇸🇪 🇳🇴 🇩🇪 | Services DK |
+| **Suède** | 🇸🇪 | Suédois | 🇳🇴 🇩🇰 🇫🇮 | SVT Play |
+| **Norvège** | 🇳🇴 | Norvégien | 🇸🇪 🇩🇰 🇫🇮 | NRK TV |
+| **Danemark** | 🇩🇰 | Danois | 🇸🇪 🇳🇴 🇫🇮 🇩🇪 | DR TV |
+| **Finlande** | 🇫🇮 | *interface EN* | 🇸🇪 🇳🇴 🇩🇰 | Yle Areena |
 
 ---
 
@@ -554,7 +555,8 @@ xpengmedia/
 | **2.3** | PWA installable, mode hors ligne |
 | **2.4** | Logos embarqués pour les 200 services (plus aucun CDN tiers), sections et badges du sélecteur de région |
 | **2.5** | Synchronisation entre appareils sur votre propre serveur ; données du véhicule (⚠️ XPENG ne publie aucune API publique — voir [docs/VEHICULE.md](docs/VEHICULE.md)) |
-| **2.5.1** | Ménage du dépôt : documentation périmée supprimée, listes de régions dédupliquées, dépendances inutilisées retirées |
+| **2.5.1** | Ménage du dépôt : documentation périmée supprimée, listes de régions dédupliquées, dépendances inutilisées retirées, police servie localement |
+| **2.6** | Le filtrage régional filtre vraiment : 65 services re-scopés, une chaîne nationale n'apparaît plus que dans son pays. Région 🇫🇮 Finlande ajoutée |
 
 ### 🚀 Pistes
 
@@ -562,11 +564,35 @@ xpengmedia/
 - [ ] Widgets personnalisables
 - [ ] Mode multi-utilisateurs
 - [ ] Compléter les 10 langues partiellement traduites ([docs/REGIONS.md](docs/REGIONS.md#langues))
-- [ ] Rendre les régions européennes réellement distinctes ([limite connue](docs/REGIONS.md#️-limite-connue--les-régions-européennes-sont-équivalentes))
 
 ---
 
 ## 📝 Changelog
+
+### **v2.6.0** — 2026-08-20 🌍 Le filtrage régional filtre vraiment
+
+#### 🐛 Le problème
+Les **12 régions européennes affichaient exactement les mêmes 162 services**. Une chaîne française apparaissait quand la région était réglée sur l'Allemagne, la RTBF belge s'affichait en Suède, et BBC iPlayer partout dans le monde.
+
+La cause était dans les données : chaque service marqué `france`, `germany`, `uk`, `spain` ou `italy` portait **aussi** `europe`, et treize services nationaux — Canal+, France.tv, Molotov, Arte, ARD, ZDF, BBC iPlayer, Info Trafic… — portaient même `global`. Les scopes nationaux n'avaient donc **aucun effet** sur le filtrage.
+
+#### ✅ La correction
+- **65 services re-scopés.** Un service national ne porte plus que son pays : `tf1plus` → `['france']`, `ard-mediathek` → `['germany']`, `svt-play` → `['sweden']`.
+- **Services binationaux** portés par les données : Arte est franco-allemande → `['france', 'germany']`, et n'apparaît nulle part ailleurs. ADN et Wakanim couvrent l'Europe francophone → `['france', 'belgium', 'switzerland']`.
+- **`europe` réservé aux services réellement pan-européens** : Chargemap, Chargeprice, Total EV Charge, ChargePoint, Tesla Supercharger, Deezer, Radioplayer, Boosteroid, TVMucho, XPENG Europe. Dix services, contre 65 auparavant.
+- **7 scopes nationaux ajoutés** : `belgium`, `switzerland`, `austria`, `netherlands`, `sweden`, `norway`, `denmark`, `finland`. Les chaînes belges, suisses, néerlandaises et nordiques n'avaient aucun moyen d'être scopées correctement.
+- **3 scopes de groupe retirés** — `western_europe`, `northern_europe`, `anglophone` : tous les services qui les portaient portaient aussi `europe`, ils ne servaient à rien.
+
+#### 🇫🇮 Une région ajoutée
+Le catalogue contient **Yle Areena**, la télévision publique finlandaise. Une fois scopée `finland`, elle n'aurait été visible depuis aucune région : la Finlande n'en était pas une. Elle a donc été ajoutée (détection sur `Europe/Helsinki`, interface en anglais faute de traduction `fi`). **21 régions** désormais.
+
+#### 🧪 9 nouveaux tests
+`src/utils/regionFilter.test.mjs` (`npm run test:regions`) verrouille la règle : un service national reste dans son pays, un binational apparaît dans ses deux pays, les voisins ne partagent pas leurs chaînes, la Chine n'accepte pas `global`, **chaque scope national correspond à une région existante**, et **aucun service n'est invisible depuis toutes les régions**. Les deux derniers auraient attrapé le cas Yle Areena tout seuls.
+
+#### 📊 Résultat
+Les régions ne sont plus interchangeables : 🇫🇷 131 · 🇺🇸 120 · 🇩🇪 116 · 🇪🇸 114 · 🇧🇪 🇨🇭 🇬🇧 113 · 🇮🇹 111 · 🇳🇱 110 · 🇦🇹 🇸🇪 🇳🇴 🇩🇰 🇫🇮 109 · 🇦🇺 105 · 🇸🇬 103 · 🇦🇪 🇶🇦 🇮🇱 99 · 🌍 98 · 🇨🇳 28.
+
+---
 
 ### **v2.5.1** — 2026-08-20 🧹 Attribution, ménage et documentation
 
@@ -587,11 +613,6 @@ xpengmedia/
 
 #### 🔒 Dernier appel à un tiers supprimé
 - **La police Urbanist était chargée depuis `fonts.googleapis.com`** à chaque démarrage. C'était la dernière requête vers un CDN tiers : elle contredisait la suppression des CDN de logos (v2.4) et la promesse de fonctionnement hors ligne — sans réseau, toute la typographie basculait sur la pile système. Elle est désormais servie depuis `/public/fonts` et pré-mise en cache par le service worker. Google diffusant le même fichier pour les graisses 300 à 700 (police variable), cela ne coûte que **deux fichiers, 44 Ko au total**, et le rendu est strictement identique
-
-#### 🔍 Limite documentée
-- Les **12 régions européennes affichent les mêmes 162 services** : tout service marqué `france`, `germany`, `uk`, `spain` ou `italy` porte aussi le scope `europe`. Les scopes nationaux n'ont donc aucun effet sur le filtrage. Rien n'a été modifié — restreindre ces services serait un choix de produit, pas une correction. Voir [docs/REGIONS.md](docs/REGIONS.md#️-limite-connue--les-régions-européennes-sont-équivalentes)
-
----
 
 ### **v2.5.0** — 2026-08-20 🔄 Synchronisation & données véhicule
 

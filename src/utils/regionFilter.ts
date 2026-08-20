@@ -1,63 +1,67 @@
-// Utilitaire pour filtrer les services selon la région sélectionnée
-import type { Region } from '../data/regionsMetadata';
-import type { PlatformLink } from '../data/platforms';
+// Filtrage des services selon la région sélectionnée.
+//
+// Les extensions `.ts` sont explicites pour que `node --test` puisse importer
+// ce module directement (voir regionFilter.test.mjs) : Node ne résout pas les
+// imports sans extension, contrairement à Vite.
+import type { Region } from '../data/regionsMetadata.ts';
+import type { AvailabilityScope, PlatformLink } from '../data/platforms.ts';
 import {
   videoCategories,
   musicCategories,
   gamesCategories,
   chargingCategories,
   otherServicesCategories,
-} from '../data/platforms';
+} from '../data/platforms.ts';
 
-// Mapping des régions vers leurs groupes d'availability
-// IMPORTANT : utiliser uniquement des valeurs réellement présentes dans AvailabilityScope
-// pour garantir que le filtrage renvoie bien les bons services.
-const regionToAvailabilityMap: Record<Region, string[]> = {
+// Ce qu'une région accepte : les services mondiaux, les services réellement
+// pan-européens, et ceux de son propre pays. Rien d'autre.
+//
+// Un service national n'est visible que dans son pays : une chaîne française
+// n'apparaît pas quand la région est réglée sur l'Allemagne. Les scopes de
+// groupe (`western_europe`, `northern_europe`, `anglophone`) ont été retirés :
+// tous les services qui les portaient portaient aussi `europe`, ils n'avaient
+// donc aucun effet et les 12 régions européennes affichaient la même liste.
+const regionToAvailabilityMap: Record<Region, AvailabilityScope[]> = {
   global: ['global'],
 
-  // Europe de l'Ouest
-  france: ['global', 'europe', 'western_europe', 'france'],
-  spain: ['global', 'europe', 'western_europe', 'spain'],
-  italy: ['global', 'europe', 'western_europe', 'italy'],
-  belgium: ['global', 'europe', 'western_europe'],
+  // Europe : mondial + pan-européen + national
+  france: ['global', 'europe', 'france'],
+  belgium: ['global', 'europe', 'belgium'],
+  switzerland: ['global', 'europe', 'switzerland'],
+  spain: ['global', 'europe', 'spain'],
+  italy: ['global', 'europe', 'italy'],
+  germany: ['global', 'europe', 'germany'],
+  austria: ['global', 'europe', 'austria'],
+  netherlands: ['global', 'europe', 'netherlands'],
+  sweden: ['global', 'europe', 'sweden'],
+  norway: ['global', 'europe', 'norway'],
+  denmark: ['global', 'europe', 'denmark'],
+  finland: ['global', 'europe', 'finland'],
+  uk: ['global', 'europe', 'uk'],
 
-  // Europe centre / nord
-  germany: ['global', 'europe', 'northern_europe', 'germany'],
-  austria: ['global', 'europe', 'northern_europe'],
-  switzerland: ['global', 'europe', 'northern_europe'],
-  netherlands: ['global', 'europe', 'northern_europe'],
-  sweden: ['global', 'europe', 'northern_europe'],
-  norway: ['global', 'europe', 'northern_europe'],
-  denmark: ['global', 'europe', 'northern_europe'],
+  // Hors d'Europe
+  usa: ['global', 'north-america'],
+  australia: ['global', 'australia'],
+  singapore: ['global', 'asia'],
 
-  // Anglophones
-  uk: ['global', 'europe', 'anglophone', 'uk'],
-  usa: ['global', 'north-america', 'anglophone'],
-  australia: ['global', 'australia', 'anglophone'],
-
-  // Asie
-  // Chine continentale : on NE prend PAS 'global' pour éviter les services bloqués,
-  // uniquement les services marqués explicitement 'asia' ou 'china'.
+  // Chine continentale : pas de `global`, la plupart des services mondiaux y
+  // étant inaccessibles. Uniquement ce qui est marqué `asia` ou `china`.
   china: ['asia', 'china'],
-  // Autres régions asiatiques gardent 'global' + 'asia'.
-  singapore: ['global', 'asia', 'anglophone'],
 
-  // Moyen-Orient
   uae: ['global', 'middle-east'],
   qatar: ['global', 'middle-east'],
   israel: ['global', 'middle-east'],
 };
 
 /**
- * Filtre les services disponibles pour une région donnée
- * Inclut TOUJOURS les services globaux + les services de la région
+ * Ne garde que les services disponibles dans la région donnée : les services
+ * mondiaux, les pan-européens si la région est en Europe, et ceux du pays.
  */
 export function filterPlatformsByRegion(platforms: PlatformLink[], userRegion: Region): PlatformLink[] {
-  // Récupérer les availability acceptables pour cette région
-  const acceptedAvailability = regionToAvailabilityMap[userRegion] || ['global'];
+  const accepted = regionToAvailabilityMap[userRegion] ?? ['global'];
 
   return platforms.filter((platform) =>
-    platform.availability.some((avail: string) => acceptedAvailability.includes(avail))
+    platform.availability.some((scope) => accepted.includes(scope))
   );
 }
 

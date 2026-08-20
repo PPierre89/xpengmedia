@@ -10,7 +10,7 @@ quelle langue.
 Tout part de `src/data/regionsMetadata.ts` :
 
 ```ts
-export type Region = 'global' | 'france' | … ;   // 20 codes
+export type Region = 'global' | 'france' | … ;   // 21 codes
 
 export interface RegionMetadata {
   code: Region;
@@ -31,7 +31,7 @@ const regions = regionsMetadata.map(({ code, name, flag, languages }) => ({
 }));
 ```
 
-Les deux listes existaient auparavant en double, avec les 20 noms et drapeaux
+Les deux listes existaient auparavant en double, avec les noms et drapeaux
 recopiés. Elles étaient identiques — mais rien ne le garantissait, et le premier
 renommage les aurait fait diverger sans erreur ni test rouge.
 
@@ -42,19 +42,25 @@ Pour **ajouter une région**, il suffit donc d'une entrée dans
 
 ---
 
-## Les 20 régions
+## Les 21 régions
 
 | Groupe | Régions |
 |---|---|
 | `global` | 🌍 Global / International |
 | `western_europe` | 🇫🇷 France · 🇪🇸 España · 🇮🇹 Italia · 🇧🇪 België / Belgique |
 | `northern_europe` | 🇩🇪 Deutschland · 🇦🇹 Österreich · 🇨🇭 Schweiz / Suisse · 🇳🇱 Nederland |
-| `nordic` | 🇸🇪 Sverige · 🇳🇴 Norge · 🇩🇰 Danmark |
+| `nordic` | 🇸🇪 Sverige · 🇳🇴 Norge · 🇩🇰 Danmark · 🇫🇮 Suomi |
 | `anglophone` | 🇬🇧 United Kingdom · 🇺🇸 United States · 🇦🇺 Australia |
 | `asia` | 🇸🇬 Singapore · 🇨🇳 中国 China |
 | `middle_east` | 🇦🇪 UAE · 🇶🇦 Qatar · 🇮🇱 Israel |
 
 Le groupe et le champ `neighbors` alimentent les suggestions du sélecteur.
+
+> 🇫🇮 **Suomi** n'a pas de traduction `fi` : l'interface y reste en anglais,
+> comme le prévoit le repli de `t()`. La région existe parce que le catalogue
+> contient **Yle Areena**, la télévision publique finlandaise : sans elle, ce
+> service ne serait visible depuis aucune région. Un test le vérifie
+> (« aucun service n'est invisible depuis toutes les régions »).
 
 ---
 
@@ -73,6 +79,7 @@ que la langue seule confond :
 | `Europe/Brussels` | `fr-BE` | 🇧🇪 België (interface en `nl`) |
 | `Asia/Qatar` | `ar-QA` | 🇶🇦 Qatar |
 | `Asia/Dubai` | `ar-*` | 🇦🇪 UAE |
+| `Europe/Helsinki` | `fi-*` | 🇫🇮 Suomi (interface en `en`) |
 
 Sans correspondance, le repli est 🇫🇷 France.
 
@@ -120,50 +127,97 @@ bloc `en`.
 ## Filtrage des services
 
 Chaque service porte un tableau `availability`. `regionToAvailabilityMap`
-(`src/utils/regionFilter.ts`) dit quelles valeurs une région accepte :
+(`src/utils/regionFilter.ts`) dit quelles valeurs une région accepte — les
+services mondiaux, les services réellement pan-européens si la région est en
+Europe, et ceux de son propre pays :
 
 ```ts
-france:  ['global', 'europe', 'western_europe', 'france'],
-usa:     ['global', 'north-america', 'anglophone'],
+france:  ['global', 'europe', 'france'],
+germany: ['global', 'europe', 'germany'],
+usa:     ['global', 'north-america'],
 china:   ['asia', 'china'],   // pas de 'global' : services bloqués en Chine
 ```
 
+La règle est simple : **un service national n'est visible que dans son pays.**
+Une chaîne française n'apparaît pas quand la région est réglée sur l'Allemagne,
+et réciproquement. Les voisins ne partagent rien non plus : la RTBF est belge,
+pas française.
+
+Deux nuances portées par les données elles-mêmes :
+
+- un service **binational** porte ses deux pays — Arte est franco-allemande,
+  donc `['france', 'germany']`, et n'apparaît nulle part ailleurs ;
+- un service **réellement pan-européen** garde `europe` : Chargemap, Deezer,
+  Radioplayer, Boosteroid, les réseaux de recharge. Ils sont visibles dans
+  toutes les régions européennes et nulle part ailleurs.
+
 La Chine est le seul cas qui **exclut** `global`, pour ne pas proposer des
 services inaccessibles derrière le pare-feu.
+
+### Les scopes
+
+| Portée large | Sens |
+|---|---|
+| `global` | disponible partout (sauf Chine, qui n'accepte pas ce scope) |
+| `europe` | réellement pan-européen |
+| `north-america`, `asia`, `china`, `australia`, `middle-east` | continental |
+
+| Portée nationale | |
+|---|---|
+| `france`, `belgium`, `switzerland`, `germany`, `austria`, `netherlands`, `spain`, `italy`, `uk`, `sweden`, `norway`, `denmark`, `finland` | un seul pays |
+
+Chaque scope national **doit** correspondre à une région existante, sinon le
+service ne serait affiché nulle part. Deux tests le garantissent, et c'est ce
+qui a rendu la région Finlande nécessaire.
+
+Les anciens scopes de groupe `western_europe`, `northern_europe` et
+`anglophone` ont été **retirés** : tous les services qui les portaient
+portaient aussi `europe`, ils n'avaient donc aucun effet sur le filtrage.
+
+### Comptage par région
 
 Le sélecteur affiche un badge du nombre de services par région
 (`countServicesForRegion`), mémoïsé : le catalogue est statique, chaque région
 n'est comptée qu'une fois.
 
-### ⚠️ Limite connue : les régions européennes sont équivalentes
-
-Aujourd'hui, les 12 régions européennes affichent **toutes les mêmes 162
-services**. La raison est dans les données, pas dans le filtre : les 14 services
-marqués `france`, les 6 marqués `germany`, les 5 `uk`, les 5 `spain` et les 3
-`italy` portent **aussi** le scope `europe`. Vérifié : aucun service du
-catalogue n'a un scope national sans avoir également `europe` ou `global`.
-
-Conséquence : les scopes nationaux et les scopes de groupe
-(`western_europe`, `northern_europe`, `anglophone`) n'ajoutent rien au filtrage,
-et le badge affiche 162 pour la France comme pour la Suède.
-
-Répartition réelle des comptages :
-
 | Région | Services |
 |---|---|
-| Toute l'Europe (12 régions) | 162 |
-| 🇺🇸 United States | 134 |
-| 🇦🇺 Australia | 119 |
-| 🇸🇬 Singapore | 117 |
-| 🇦🇪 🇶🇦 🇮🇱 Moyen-Orient | 112 |
-| 🌍 Global | 111 |
-| 🇨🇳 China | 28 |
+| 🇫🇷 France | 131 |
+| 🇺🇸 United States | 120 |
+| 🇩🇪 Deutschland | 116 |
+| 🇪🇸 España | 114 |
+| 🇧🇪 België / Belgique · 🇨🇭 Schweiz / Suisse · 🇬🇧 United Kingdom | 113 |
+| 🇮🇹 Italia | 111 |
+| 🇳🇱 Nederland | 110 |
+| 🇦🇹 Österreich · 🇸🇪 Sverige · 🇳🇴 Norge · 🇩🇰 Danmark · 🇫🇮 Suomi | 109 |
+| 🇦🇺 Australia | 105 |
+| 🇸🇬 Singapore | 103 |
+| 🇦🇪 UAE · 🇶🇦 Qatar · 🇮🇱 Israel | 99 |
+| 🌍 Global | 98 |
+| 🇨🇳 中国 China | 28 |
 
-**Pour rendre les régions européennes réellement distinctes**, il faudrait
-retirer `europe` des services purement nationaux dans `src/data/platforms.ts`
-(TF1+, Canal+, ARD, RTBF, SVT…). C'est un choix de produit, pas une correction :
-un conducteur allemand en voyage en France cesserait alors de voir les chaînes
-françaises. Rien n'a donc été modifié.
+Jusqu'en v2.5.1, **les 12 régions européennes affichaient toutes exactement 162
+services** : chaque service marqué `france`, `germany`, `uk`, `spain` ou
+`italy` portait aussi `europe`, et treize services nationaux — dont Canal+,
+France.tv, ARD, ZDF et BBC iPlayer — portaient même `global`. Les scopes
+nationaux n'avaient donc aucun effet, et la Suède affichait les chaînes
+françaises. Les 65 services concernés ont été re-scopés.
+
+---
+
+## Ajouter un service national
+
+1. L'ajouter dans `src/data/platforms.ts` avec le scope de **son pays**, pas
+   `europe` — `europe` est réservé aux services réellement pan-européens.
+2. Si son pays n'est pas encore une région, ajouter la région dans
+   `regionsMetadata.ts` **et** son entrée dans `regionToAvailabilityMap` ;
+   TypeScript signale l'oubli, et un test vérifie qu'aucun scope national ne
+   reste orphelin.
+3. Déclarer son logo (`npm run logos`, voir [LOGOS.md](LOGOS.md)).
+
+```bash
+npm run test:regions   # vérifie le filtrage et les scopes
+```
 
 ---
 

@@ -1,7 +1,7 @@
 {
   "name": "xpengmedia",
   "private": true,
-  "version": "2.5.1",
+  "version": "2.6.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,12 +13,13 @@
     "docker:up": "docker compose -f docker-compose.build.yml up -d --build",
     "test:security": "node --test server/security.test.mjs",
     "test:pwa": "node --test scripts/sw.test.mjs",
-    "test": "node --test server/security.test.mjs server/sync.test.mjs server/vehicle.test.mjs scripts/sw.test.mjs src/utils/syncEngine.test.mjs",
+    "test": "node --test server/security.test.mjs server/sync.test.mjs server/vehicle.test.mjs scripts/sw.test.mjs src/utils/syncEngine.test.mjs src/utils/regionFilter.test.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "logos": "node scripts/generate-service-logos.mjs",
     "logos:check": "node scripts/generate-service-logos.mjs --check",
-    "test:sync": "node --test server/sync.test.mjs server/vehicle.test.mjs src/utils/syncEngine.test.mjs"
+    "test:sync": "node --test server/sync.test.mjs server/vehicle.test.mjs src/utils/syncEngine.test.mjs",
+    "test:regions": "node --test src/utils/regionFilter.test.mjs"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",

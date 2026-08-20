@@ -449,6 +449,12 @@ const detectBrowserLocale = (): Locale => {
   if (timezone === 'Europe/Copenhagen' || browserLang.startsWith('da')) {
     return { region: 'denmark', language: 'da' };
   }
+
+  // Pas de traductions `fi` : l'interface reste en anglais, mais la région
+  // donne accès aux services finlandais (Yle Areena).
+  if (timezone === 'Europe/Helsinki' || browserLang.startsWith('fi')) {
+    return { region: 'finland', language: 'en' };
+  }
   
   if (timezone === 'Europe/London' || browserLang === 'en-gb') {
     return { region: 'uk', language: 'en' };
