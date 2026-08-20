@@ -33,10 +33,18 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY server ./server
 
+# Données persistantes (synchronisation, identifiants véhicule). Le dossier est
+# créé ici et donné à l'utilisateur « node » : le conteneur ne tourne pas en
+# root et ne pourrait donc pas le créer lui-même dans /app. Montez-le en volume,
+# sinon les préférences synchronisées disparaissent au redémarrage.
+RUN mkdir -p /app/data && chown node:node /app/data
+VOLUME /app/data
+
 ENV NODE_ENV=production \
     PORT=8080 \
     HOST=0.0.0.0 \
-    STATIC_DIR=/app/dist
+    STATIC_DIR=/app/dist \
+    DATA_DIR=/app/data
 
 EXPOSE 8080
 

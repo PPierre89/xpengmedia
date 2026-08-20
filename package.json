@@ -13,11 +13,12 @@
     "docker:up": "docker compose -f docker-compose.build.yml up -d --build",
     "test:security": "node --test server/security.test.mjs",
     "test:pwa": "node --test scripts/sw.test.mjs",
-    "test": "node --test server/security.test.mjs scripts/sw.test.mjs",
+    "test": "node --test server/security.test.mjs server/sync.test.mjs server/vehicle.test.mjs scripts/sw.test.mjs src/utils/syncEngine.test.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "logos": "node scripts/generate-service-logos.mjs",
-    "logos:check": "node scripts/generate-service-logos.mjs --check"
+    "logos:check": "node scripts/generate-service-logos.mjs --check",
+    "test:sync": "node --test server/sync.test.mjs server/vehicle.test.mjs src/utils/syncEngine.test.mjs"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.9",

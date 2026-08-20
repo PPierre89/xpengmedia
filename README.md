@@ -483,8 +483,11 @@ npm run serve             # compile puis sert sur http://localhost:8080
 ```
 xpengmedia/
 ├── server/
-│   ├── server.js            # Serveur tout-en-un : app + proxy IPTV (zéro dépendance)
-│   └── security.test.mjs    # Tests des protections du proxy
+│   ├── server.js            # Serveur tout-en-un : app + proxy IPTV + API perso (zéro dépendance)
+│   ├── store.js             # Magasin JSON persistant (écritures atomiques)
+│   ├── sync.js              # Synchronisation entre appareils
+│   ├── vehicle.js           # Données du véhicule (voir docs/VEHICULE.md)
+│   └── *.test.mjs           # Tests : proxy, synchronisation, véhicule
 ├── public/                  # Fichiers statiques (dont iptv-player.html)
 │   ├── sw.js                # Service worker de la PWA
 │   ├── manifest.webmanifest # Manifeste PWA
@@ -523,6 +526,8 @@ xpengmedia/
 | [docs/REGIONAL_SYSTEM.md](docs/REGIONAL_SYSTEM.md) | Système de régionalisation dynamique |
 | [docs/LOCALE_SYSTEM.md](docs/LOCALE_SYSTEM.md) | Système de localisation et de traduction |
 | [docs/LOGOS.md](docs/LOGOS.md) | Logos des services : génération, sources, ajout d'un service |
+| [docs/SYNCHRONISATION.md](docs/SYNCHRONISATION.md) | Synchronisation entre appareils : activation, protocole, sécurité |
+| [docs/VEHICULE.md](docs/VEHICULE.md) | Données du véhicule : état réel de l'API XPENG, configuration, dépannage |
 | [docs/DEBUG_LOCALE.md](docs/DEBUG_LOCALE.md) | Notes de débogage du changement de langue |
 | [docs/ENRICHMENT_PLAN.md](docs/ENRICHMENT_PLAN.md) • [docs/S3XYTHEATER_ANALYSIS.md](docs/S3XYTHEATER_ANALYSIS.md) | Analyses et pistes d'enrichissement du catalogue |
 | [docs/archive/](docs/archive/) | 📦 Documentation historique (proxies cloud Vercel/Netlify/Cloudflare, anciens guides logos basés sur des CDN tiers). **Périmée** |
@@ -547,16 +552,44 @@ xpengmedia/
 - [x] PWA (Progressive Web App)
 - [x] Mode hors-ligne
 
+### ✅ Version 2.5
+- [x] Synchronisation entre appareils, sur votre propre serveur — sans service tiers
+- [x] Intégration données véhicule : batterie, autonomie, charge, position
+      (⚠️ XPENG ne publie aucune API publique — voir [docs/VEHICULE.md](docs/VEHICULE.md))
+
 ### 🚀 Version 3.0 (Futur)
-- [ ] Intégration API XPENG
 - [ ] Commandes vocales
 - [ ] Widgets personnalisables
 - [ ] Mode multi-utilisateurs
-- [ ] Synchronisation cloud
 
 ---
 
 ## 📝 Changelog
+
+### **v2.5.0** — 2026-08-20 🔄 Synchronisation & données véhicule
+
+#### 🆕 Nouvelles fonctionnalités
+- **Synchronisation entre appareils** : favoris, région, thème, services masqués, statistiques d'usage et notes suivent de l'écran de la voiture au téléphone — **via votre propre serveur**, sans aucun service tiers, cohérent avec la suppression des backends cloud en v2.2. Un aller-retour, fusion dernier-écrit-gagnant clé par clé, pierres tombales pour les suppressions, fusion effectuée avant le premier rendu. Voir [docs/SYNCHRONISATION.md](docs/SYNCHRONISATION.md)
+- **Données du véhicule** sur l'accueil : batterie, autonomie, état de charge, compteur et position. Les identifiants du compte constructeur vivent côté serveur en écriture seule (0600) et ne touchent jamais le navigateur. Provider `demo` pour essayer sans voiture. Voir [docs/VEHICULE.md](docs/VEHICULE.md)
+- **Stockage persistant** côté serveur (`server/store.js`) : écritures atomiques, mises à jour sérialisées, toujours sans aucune dépendance npm
+
+#### ⚠️ Limite assumée : l'API XPENG
+XPENG **ne publie aucune API publique** (vérifié en août 2026) : portail géo-restreint et fermé par compte, aucune documentation. Toutes les intégrations existantes (Home Assistant, Homey, ABRP, evcc) passent par Enode, et XPENG annonce une API directe « dans les prochains mois » depuis plusieurs mois.
+
+Les endpoints ne sont donc **pas inventés dans le code**. Toute la chaîne est livrée et testée — coffre à identifiants, connexion, jeton, rafraîchissement sur 401, cache, mappage des champs, interface — et le dialogue avec XPENG tient en quatre variables d'environnement à renseigner depuis une capture de votre propre application. Le jour où l'API sort, rien à réécrire.
+
+#### 🔒 Sécurité
+- `API_TOKEN` protège `/api/sync` et `/api/vehicle` ; sans lui, les deux API sont **désactivées** — la position du véhicule et les favoris ne sont jamais en accès libre
+- Comparaison du jeton à temps constant
+- Liste blanche de clés synchronisables : `iptvConfig` (identifiants IPTV en clair) est **exclu par défaut**, activable par `SYNC_ALLOW_SECRETS`
+- Les identifiants véhicule sont en écriture seule : posables, remplaçables, effaçables — jamais relisibles, jamais journalisés
+- `/healthz` annonce les capacités sans authentification et sans divulguer de secret
+
+#### 🐛 Corrections
+- **`.env.example`** décrivait encore une configuration Firebase, backend retiré en v2.2 : remplacé par les vraies variables du serveur auto-hébergé
+- **Bouton « Se connecter » mort** dans les Paramètres (« synchronisez vos préférences sur tous vos appareils ») : il ne faisait rien depuis toujours, il configure maintenant réellement la synchronisation
+- **Volume de données** ajouté aux deux fichiers compose et au Dockerfile : sans lui, tout état serveur serait perdu à chaque redémarrage du conteneur
+
 
 ### **v2.4.0** — 2026-08-19 🎨 Logos embarqués & sélecteur de région
 

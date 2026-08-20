@@ -23,9 +23,20 @@ services:
       TZ: Europe/Paris
       PROXY_ALLOW_PRIVATE: "false"
       PROXY_USER_AGENT: "VLC/3.0.20 LibVLC/3.0.20"
+      # Synchronisation entre appareils + données véhicule.
+      # Tant qu'API_TOKEN est vide, ces deux API restent désactivées.
+      API_TOKEN: ""
+      VEHICLE_PROVIDER: "off"
+    volumes:
+      # Préférences synchronisées et identifiants véhicule. Sans ce volume,
+      # tout est perdu à chaque redémarrage du conteneur.
+      - xpengmedia-data:/app/data
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
+
+volumes:
+  xpengmedia-data:
