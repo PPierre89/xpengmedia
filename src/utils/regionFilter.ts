@@ -1,5 +1,5 @@
 // Utilitaire pour filtrer les services selon la région sélectionnée
-import type { Region } from '../context/LocaleContext';
+import type { Region } from '../data/regionsMetadata';
 import type { PlatformLink } from '../data/platforms';
 import {
   videoCategories,

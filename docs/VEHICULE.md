@@ -85,6 +85,7 @@ consultez l'état du véhicule, et relevez :
 | `XPENG_STATUS_PATH` | Chemin de l'état du véhicule | `/vehicle/status` |
 | `XPENG_AUTH_HEADER` | En-tête portant le jeton, avec `{{token}}` | `Authorization: Bearer {{token}}` |
 | `XPENG_TOKEN_TTL_MS` | Durée avant reconnexion préventive | `1800000` |
+| `VEHICLE_POLL_MS` | Fraîcheur du cache : en deçà, l'état est resservi sans rappeler l'API | `60000` |
 | `XPENG_FIELD_MAP` | JSON : champ normalisé → chemin pointé | voir ci-dessous |
 
 Exemple de mappage, si l'API renvoie `{"data":{"soc":73,"range":380,...}}` :

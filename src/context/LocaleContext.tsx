@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 
-export type Region = 'global' | 'france' | 'germany' | 'spain' | 'italy' | 'uk' | 'netherlands' | 'belgium' | 'sweden' | 'norway' | 'denmark' | 'switzerland' | 'austria' | 'usa' | 'australia' | 'china' | 'singapore' | 'uae' | 'qatar' | 'israel';
+import { regionsMetadata, type Region } from '../data/regionsMetadata';
+
+// Réexporté pour les modules qui importaient déjà `Region` depuis ici.
+export type { Region };
 
 interface Locale {
   region: Region;
@@ -21,29 +24,15 @@ interface LocaleContextType {
 
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined);
 
-// Pays où XPENG est officiellement distribué
-const regions = [
-  { code: 'global' as Region, name: 'Global / International', flag: '🌍', language: 'en' },
-  { code: 'france' as Region, name: 'France', flag: '🇫🇷', language: 'fr' },
-  { code: 'germany' as Region, name: 'Deutschland', flag: '🇩🇪', language: 'de' },
-  { code: 'netherlands' as Region, name: 'Nederland', flag: '🇳🇱', language: 'nl' },
-  { code: 'belgium' as Region, name: 'België / Belgique', flag: '🇧🇪', language: 'nl' },
-  { code: 'spain' as Region, name: 'España', flag: '🇪🇸', language: 'es' },
-  { code: 'italy' as Region, name: 'Italia', flag: '🇮🇹', language: 'it' },
-  { code: 'sweden' as Region, name: 'Sverige', flag: '🇸🇪', language: 'sv' },
-  { code: 'norway' as Region, name: 'Norge', flag: '🇳🇴', language: 'no' },
-  { code: 'denmark' as Region, name: 'Danmark', flag: '🇩🇰', language: 'da' },
-  { code: 'switzerland' as Region, name: 'Schweiz / Suisse', flag: '🇨🇭', language: 'de' },
-  { code: 'austria' as Region, name: 'Österreich', flag: '🇦🇹', language: 'de' },
-  { code: 'uk' as Region, name: 'United Kingdom', flag: '🇬🇧', language: 'en' },
-  { code: 'usa' as Region, name: 'United States', flag: '🇺🇸', language: 'en' },
-  { code: 'australia' as Region, name: 'Australia', flag: '🇦🇺', language: 'en' },
-  { code: 'china' as Region, name: '中国 China', flag: '🇨🇳', language: 'zh' },
-  { code: 'singapore' as Region, name: 'Singapore', flag: '🇸🇬', language: 'en' },
-  { code: 'uae' as Region, name: 'UAE الإمارات', flag: '🇦🇪', language: 'ar' },
-  { code: 'qatar' as Region, name: 'Qatar قطر', flag: '🇶🇦', language: 'ar' },
-  { code: 'israel' as Region, name: 'Israel ישראל', flag: '🇮🇱', language: 'he' },
-];
+// Pays où XPENG est officiellement distribué. Dérivé des métadonnées : le nom,
+// le drapeau et la langue par défaut d'une région ne sont écrits qu'à un seul
+// endroit, `src/data/regionsMetadata.ts`.
+const regions = regionsMetadata.map(({ code, name, flag, languages }) => ({
+  code,
+  name,
+  flag,
+  language: languages[0] as string,
+}));
 
 // Traductions basiques
 const translations: Record<string, Record<string, string>> = {

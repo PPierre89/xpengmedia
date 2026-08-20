@@ -1,9 +1,36 @@
-import type { Region } from '../context/LocaleContext';
+/**
+ * Source unique de vérité pour les régions : code, nom, drapeau, langues,
+ * groupe et voisins. `LocaleContext` en dérive sa liste de régions, plutôt que
+ * de la redéclarer — les deux listes existaient en double et pouvaient diverger
+ * silencieusement au premier renommage.
+ */
+export type Region =
+  | 'global'
+  | 'france'
+  | 'germany'
+  | 'spain'
+  | 'italy'
+  | 'uk'
+  | 'netherlands'
+  | 'belgium'
+  | 'sweden'
+  | 'norway'
+  | 'denmark'
+  | 'switzerland'
+  | 'austria'
+  | 'usa'
+  | 'australia'
+  | 'china'
+  | 'singapore'
+  | 'uae'
+  | 'qatar'
+  | 'israel';
 
 export interface RegionMetadata {
   code: Region;
   name: string;
   flag: string;
+  /** Première entrée = langue d'interface par défaut de la région. */
   languages: string[];
   group: string;
   neighbors: Region[];

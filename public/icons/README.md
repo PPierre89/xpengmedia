@@ -1,61 +1,4 @@
-# XPENG Media Hub - Icônes uniformes
-
-## Design System
-
-### Tailles standardisées
-
-- **Small (sm)**: 40x40px (10rem) - Utilisé pour les favoris en mode portrait
-- **Medium (md)**: 48x48px (12rem) - Utilisé pour les cards standards
-- **Large (lg)**: 64x64px (16rem) - Utilisé pour les grandes vignettes
-
-### Style uniforme
-
-Toutes les icônes suivent le même design XPENG :
-
-- **Background**: Dégradé cyan-50 → blue-50 (mode clair) / slate-800 → slate-700 (mode sombre)
-- **Border**: 2px solid cyan-200/50 (mode clair) / cyan-500/30 (mode sombre)
-- **Border radius**: rounded-xl (0.75rem)
-- **Shadow**: shadow-sm avec transition
-- **Hover effect**: 
-  - Scale 105%
-  - Border cyan-300
-  - Shadow-md
-
-### Compatibilité
-
-- ✅ Mode portrait et paysage
-- ✅ Mode clair et sombre
-- ✅ Responsive (mobile, tablette, desktop)
-- ✅ Bouton suppression cliquable (32x32px avec ring blanc)
-
-### Accessibilité
-
-- Aria-hidden sur les conteneurs d'icônes
-- Labels descriptifs pour les boutons d'action
-- Contraste suffisant en mode clair et sombre
-- Zone de clic suffisamment grande (minimum 32x32px)
-
-## Structure des composants
-
-```tsx
-<PlatformIcon 
-  icon="🎬"              // Emoji ou texte
-  name="Netflix"         // Nom du service (pour aria-label)
-  size="md"              // sm | md | lg
-  className=""           // Classes Tailwind additionnelles
-/>
-```
-
-## Bouton de suppression
-
-- **Taille**: 32x32px (h-8 w-8)
-- **Position**: absolute -right-2 -top-2
-- **Style**: bg-red-500 avec ring-2 ring-white
-- **Icône**: XMarkIcon 20x20px (h-5 w-5)
-- **Interactions**: 
-  - Hover: scale-110 + bg-red-600
-  - Active: scale-95
-  - Animation spring pour apparition/disparition
+# Icônes
 
 ## Contenu du dossier
 
@@ -65,13 +8,67 @@ Toutes les icônes suivent le même design XPENG :
   [services/README.md](services/README.md).
 - `pwa/` : icônes d'installation de la PWA, générées par `npm run icons`.
 
-## Notes techniques
-
 Tous les logos sont des SVG servis depuis `/public`, donc :
-- ✅ Aucune requête vers un CDN tiers
-- ✅ Disponibles hors ligne, mis en cache par le service worker
-- ✅ Nets à toutes les tailles, poids négligeable (~170 Ko pour 200 logos)
 
-`PlatformIcon` accepte aussi un emoji : les favoris créés par l'utilisateur en
-utilisent par défaut. Si une image ne charge pas, le composant affiche le
-monogramme du service plutôt qu'une vignette cassée.
+- ✅ aucune requête vers un CDN tiers ;
+- ✅ disponibles hors ligne, mis en cache par le service worker ;
+- ✅ nets à toutes les tailles, poids négligeable (~170 Ko pour 200 logos).
+
+---
+
+## Le composant `PlatformIcon`
+
+```tsx
+<PlatformIcon
+  icon="/icons/services/netflix.svg"  // URL, chemin, data: … ou emoji
+  name="Netflix"                      // sert d'aria-label et de repli
+  size="md"                           // sm | md | lg
+  className=""                        // classes Tailwind additionnelles
+/>
+```
+
+`icon` accepte aussi bien un chemin qu'un **emoji** : les favoris créés par
+l'utilisateur en utilisent un par défaut. La distinction est faite sur le
+préfixe (`http`, `/`, `data:`, `icons/`).
+
+### Tailles
+
+| `size` | Conteneur | Image | Emoji |
+|---|---|---|---|
+| `sm` | 44 px | 32 px | 22 px |
+| `md` | 52 px | 40 px | 26 px |
+| `lg` | 64 px | 48 px | 30 px |
+
+Elles sont volontairement compactes : la grille passe à 5 colonnes sur l'écran
+du véhicule en mode portrait.
+
+### Style du conteneur
+
+Une pastille neutre, pour laisser la couleur venir du logo lui-même :
+`rounded-xl`, fond `white/80` en clair et `white/10` en sombre avec
+`backdrop-blur`, bordure `slate-200/70` (`slate-700/50` en sombre), `shadow-sm`.
+Au survol de la carte parente : `scale-105`, ombre renforcée, bordure un cran
+plus soutenue.
+
+### Repli
+
+Si l'image ne charge pas, le composant affiche le **monogramme** du service sur
+un dégradé de l'interface — jamais une vignette cassée. La couleur est tirée
+d'une palette de 8 par hachage du nom : un service garde donc toujours la même.
+Les drapeaux emoji des noms régionaux sont ignorés dans le calcul des
+initiales.
+
+Ce repli ne concerne plus le catalogue, dont les 200 logos sont embarqués. Il
+protège les favoris enregistrés dans le `localStorage` qui pointeraient encore
+vers une ancienne URL de CDN.
+
+---
+
+## Accessibilité
+
+- Le conteneur est `aria-hidden` : le nom du service est déjà porté par la
+  carte, l'annoncer deux fois est du bruit pour un lecteur d'écran.
+- Chaque SVG généré contient un `<title>` et un `aria-label`.
+- Le bouton de suppression d'un service fait 32 × 32 px avec un anneau blanc
+  (`ring-2 ring-white`, `ring-slate-900` en sombre), au-dessus du seuil de
+  confort tactile.

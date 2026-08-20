@@ -139,10 +139,11 @@ module.exports = {
     },
   },
   plugins: [
-    require('tailwindcss-animate'),
-    require('@tailwindcss/typography'),
+    // `forms` seul : il restyle globalement les champs de saisie, donc le
+    // retirer changerait l'apparence de l'interface. Les trois autres plugins
+    // (typography, aspect-ratio, animate) n'étaient utilisés nulle part, et
+    // `line-clamp` est intégré à Tailwind depuis la 3.3.
     require('@tailwindcss/forms'),
-    require('@tailwindcss/aspect-ratio'),
   ],
   variants: {
     extend: {

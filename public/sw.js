@@ -32,6 +32,10 @@ const PRECACHE = [
   '/manifest.webmanifest',
   '/icons/pwa/icon-192.png',
   '/icons/pwa/icon-512.png',
+  // La police est servie localement (voir src/index.css) : sans elle en cache,
+  // le premier démarrage hors ligne bascule sur la pile système.
+  '/fonts/urbanist-latin.woff2',
+  '/fonts/urbanist-latin-ext.woff2',
 ];
 
 const BYPASS = ['/api/proxy', '/healthz'];

@@ -6,18 +6,18 @@
 
 [![Auto-hébergement](https://img.shields.io/badge/🏠_Auto--hébergé-Docker_/_NAS-2496ED?style=for-the-badge&logo=docker&logoColor=white)](DEPLOY-NAS-UGREEN.md)
 [![Image](https://img.shields.io/badge/ghcr.io-xpengmedia-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/PPierre89/xpengmedia/pkgs/container/xpengmedia)
-[![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 
 **[🏠 Déployer sur ton NAS](DEPLOY-NAS-UGREEN.md)** • **[📖 Documentation](#-documentation)** • **[🐛 Signaler un bug](https://github.com/PPierre89/xpengmedia/issues)**
 
 ---
 
-### 200 services • 10 langues • 20 régions • Mode clair/sombre • 100% responsive
+### 200 services • 12 langues • 20 régions • Mode clair/sombre • 100% responsive
 
 ![XPENG Media Hub](https://img.shields.io/badge/Status-Production-brightgreen?style=flat-square)
-![Version](https://img.shields.io/badge/Version-2.1.0-blue?style=flat-square)
+![Version](https://img.shields.io/badge/Version-2.5.1-blue?style=flat-square)
 ![Licence](https://img.shields.io/badge/Licence-MIT-yellow?style=flat-square)
 
 </div>
@@ -43,17 +43,17 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 ## ✨ Fonctionnalités principales
 
 ### 🌍 **Multi-régional et multilingue**
-- **10 langues** complètes avec traduction automatique
-- **Détection automatique** de la langue et région du navigateur
-- **Filtrage intelligent** : Seuls les services disponibles dans votre région
-- **Suggestions de régions** basées sur la proximité géographique
+- **12 langues** : anglais et français complets, 10 autres sur les écrans principaux
+- **Détection automatique** de la langue et de la région, par fuseau horaire + navigateur
+- **Filtrage** : seuls les services disponibles dans votre région
+- **Suggestions de régions** basées sur la proximité géographique et linguistique
 
 ### 📺 **200 services organisés**
-- **🎬 Vidéo** : 85+ services (Netflix, Disney+, Prime Video...)
-- **🎵 Musique** : 45+ services (Spotify, Apple Music, Deezer...)
-- **🎮 Jeux** : 35+ services (Steam, GeForce NOW, Xbox Cloud...)
-- **🔋 Recharge** : 20+ services (ABRP, Chargemap, Tesla Supercharger...)
-- **🌐 Services web** : 25+ services (Gmail, Drive, WeChat...)
+- **🎬 Vidéo** : 118 services (Netflix, Disney+, Prime Video…)
+- **🎵 Musique** : 20 services (Spotify, Apple Music, Deezer…)
+- **🎮 Jeux** : 21 services (GeForce NOW, Xbox Cloud Gaming…)
+- **🔋 Recharge** : 13 services (ABRP, Chargemap, PlugShare…)
+- **🌐 Services web & outils** : 28 services (Gmail, notes, calculatrice…)
 
 ### 🎨 **Design XPENG**
 - **Thème clair/sombre** avec transition fluide
@@ -65,6 +65,7 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 ### 📱 **PWA installable**
 - Installation sur l'écran d'accueil, démarrage plein écran
 - Interface disponible hors ligne, chargement instantané depuis le cache
+- **Zéro requête tierce** : logos et police embarqués, servis par votre serveur
 - Flux IPTV et détection du proxy local volontairement exclus du cache
 - Nécessite un accès HTTPS ([détails](DEPLOY-NAS-UGREEN.md#-installer-lapp-dans-la-voiture-pwa))
 
@@ -86,7 +87,7 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 
 ### **🌍 Global / International**
 - **Langue** : Anglais (EN)
-- **Services** : 150+ services universels
+- **Services** : 111 services universels
 - **Description** : Services accessibles partout dans le monde
 
 ---
@@ -156,32 +157,33 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 
 <div align="center">
 
-### 10 langues • Traduction complète de l'interface • Détection automatique
+### 12 langues • Détection automatique • Repli sur l'anglais
 
 </div>
 
-| Langue | Code | Région(s) principale(s) | Statut |
-|--------|------|-------------------------|--------|
-| **Anglais** | EN | 🌍 Global, 🇬🇧 UK, 🇺🇸 USA, 🇦🇺 AU, 🇸🇬 SG | ✅ Complète |
-| **Français** | FR | 🇫🇷 France, 🇧🇪 Belgique, 🇨🇭 Suisse | ✅ Complète |
-| **Allemand** | DE | 🇩🇪 Allemagne, 🇦🇹 Autriche, 🇨🇭 Suisse | ✅ Complète |
-| **Espagnol** | ES | 🇪🇸 Espagne | ✅ Complète |
-| **Italien** | IT | 🇮🇹 Italie, 🇨🇭 Suisse | ✅ Complète |
-| **Néerlandais** | NL | 🇳🇱 Pays-Bas, 🇧🇪 Belgique | ✅ Complète |
-| **Suédois** | SV | 🇸🇪 Suède | ✅ Complète |
-| **Norvégien** | NO | 🇳🇴 Norvège | ✅ Complète |
-| **Danois** | DA | 🇩🇰 Danemark | ✅ Complète |
-| **Chinois** | ZH | 🇨🇳 Chine, 🇸🇬 Singapour | ✅ Complète |
-| **Arabe** | AR | 🇦🇪 UAE, 🇶🇦 Qatar, 🇮🇱 Israël | ✅ Complète |
-| **Hébreu** | HE | 🇮🇱 Israël | ✅ Complète |
+L'interface est traduite en 12 langues, mais **pas au même niveau** — et c'est
+assumé : l'anglais et le français couvrent l'intégralité des libellés, les dix
+autres couvrent la navigation et les écrans principaux.
 
-### Traductions disponibles
+| Langue | Code | Région(s) principale(s) | Couverture |
+|--------|------|-------------------------|------------|
+| **Anglais** | EN | 🌍 Global, 🇬🇧 UK, 🇺🇸 USA, 🇦🇺 AU, 🇸🇬 SG | ✅ Complète (68 clés) |
+| **Français** | FR | 🇫🇷 France, 🇧🇪 Belgique | ✅ Complète (68 clés) |
+| **Allemand** | DE | 🇩🇪 Allemagne, 🇦🇹 Autriche, 🇨🇭 Suisse | 🟡 Essentiel (20 clés) |
+| **Espagnol** | ES | 🇪🇸 Espagne | 🟡 Essentiel (20 clés) |
+| **Italien** | IT | 🇮🇹 Italie | 🟡 Essentiel (20 clés) |
+| **Néerlandais** | NL | 🇳🇱 Pays-Bas, 🇧🇪 Belgique | 🟡 Essentiel (20 clés) |
+| **Suédois** | SV | 🇸🇪 Suède | 🟡 Essentiel (20 clés) |
+| **Norvégien** | NO | 🇳🇴 Norvège | 🟡 Essentiel (20 clés) |
+| **Danois** | DA | 🇩🇰 Danemark | 🟡 Essentiel (20 clés) |
+| **Chinois** | ZH | 🇨🇳 Chine | 🟡 Essentiel (20 clés) |
+| **Arabe** | AR | 🇦🇪 UAE, 🇶🇦 Qatar | 🟡 Essentiel (20 clés) |
+| **Hébreu** | HE | 🇮🇱 Israël | 🟡 Essentiel (20 clés) |
 
-- 🏠 Navigation : Accueil, Vidéos, Musique, Jeux
-- 🔍 Interface : Recherche, Filtres, Sélection région
-- ⭐ Favoris : Gestion, Ajout, Suppression
-- 🎨 Thème : Mode clair/sombre
-- 📝 Descriptions : Titres, sous-titres, catégories
+**Essentiel** = navigation, titres d'accueil, favoris, recherche et sélecteur de
+région. Toute clé manquante retombe sur l'anglais, jamais sur un libellé vide.
+
+👉 Détail du fonctionnement, de la détection et du filtrage : [docs/REGIONS.md](docs/REGIONS.md)
 
 ---
 
@@ -391,29 +393,34 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 ## 🛠️ Technologies utilisées
 
 ### **Frontend**
-- **React 18.3** - Bibliothèque UI moderne
-- **TypeScript 5.6** - Typage statique
-- **Vite 7.0** - Build tool ultra-rapide
-- **Tailwind CSS 3.4** - Styling utility-first
+- **React 19.2** — bibliothèque UI
+- **TypeScript 5.9** — typage statique, mode `strict`
+- **rolldown-vite 7.2** — build (remplaçant de Vite, API identique)
+- **Tailwind CSS 3.4** — styling utility-first
 
-### **Libraries**
-- **Framer Motion** - Animations fluides
-- **React Router 7.0** - Navigation SPA
-- **Heroicons** - Icônes SVG
-- **Lucide React** - Icônes complémentaires
+### **Bibliothèques**
+- **Framer Motion** — animations
+- **React Router 7.9** — navigation SPA (`HashRouter`)
+- **Heroicons** + **react-icons** — icônes SVG
+- **Headless UI** — composants accessibles (modales, listes)
+
+### **Serveur**
+- **Node.js 22** — serveur d'auto-hébergement **sans aucune dépendance npm**
+- **node:test** — 99 tests, aucun framework externe
 
 ### **Outils**
-- **ESLint** - Linting code
-- **PostCSS** - Transformation CSS
-- **Docker** - Image d'auto-hébergement publiée sur GHCR
+- **ESLint** — lint
+- **PostCSS** — transformation CSS
+- **simple-icons** — logos de marque, à la génération uniquement
+- **Docker** — image d'auto-hébergement publiée sur GHCR
 
 ---
 
 ## 🚀 Installation et développement
 
 ### **Prérequis**
-- Node.js 18+ 
-- npm ou yarn
+- Node.js **22+** (les tests utilisent le type-stripping natif de Node)
+- npm
 - Git
 
 ### **Installation locale**
@@ -491,21 +498,21 @@ xpengmedia/
 ├── public/                  # Fichiers statiques (dont iptv-player.html)
 │   ├── sw.js                # Service worker de la PWA
 │   ├── manifest.webmanifest # Manifeste PWA
+│   ├── fonts/               # Police Urbanist (servie localement, pas de CDN)
 │   ├── icons/pwa/           # Icônes d'installation
 │   └── icons/services/      # Logos des services (générés, voir docs/LOGOS.md)
 ├── src/
-│   ├── components/          # Composants React (favorites, icons, locale, modals…)
-│   ├── context/             # React Context (Favorites, Locale, Theme)
+│   ├── components/          # Composants React (favorites, locale, settings, vehicle…)
+│   ├── context/             # React Context (Favorites, Locale, Theme, Sync)
 │   ├── types/               # Types partagés (FavoriteItem…)
-│   ├── utils/               # Filtrage et comptage par région
-│   ├── data/                # platforms.ts (200 services), regionsMetadata.ts
-│   ├── hooks/               # Custom hooks
+│   ├── utils/               # Filtrage par région, moteur de synchronisation, API serveur
+│   ├── data/                # platforms.ts (200 services), regionsMetadata.ts (20 régions)
+│   ├── hooks/               # Hooks (favoris intelligents, état du véhicule)
 │   ├── pages/               # Pages de l'application
 │   ├── App.tsx
 │   └── main.tsx
 ├── scripts/                 # Génération des icônes et des logos, post-build, tests PWA
-├── docs/                    # Documentation des systèmes (régions, langues, logos)
-│   └── archive/             # Documentation historique — ne plus suivre
+├── docs/                    # Documentation des systèmes (régions, logos, sync, véhicule)
 ├── Dockerfile               # Image tout-en-un pour l'auto-hébergement
 ├── docker-compose.yml       # Déploiement depuis l'image publiée (le plus simple)
 ├── docker-compose.build.yml # Déploiement en compilant depuis les sources
@@ -523,48 +530,68 @@ xpengmedia/
 | Document | Contenu |
 |---|---|
 | **[DEPLOY-NAS-UGREEN.md](DEPLOY-NAS-UGREEN.md)** | Déploiement auto-hébergé pas à pas (NAS UGREEN, Docker), variables d'environnement, modèle de sécurité du proxy, dépannage |
-| [docs/REGIONAL_SYSTEM.md](docs/REGIONAL_SYSTEM.md) | Système de régionalisation dynamique |
-| [docs/LOCALE_SYSTEM.md](docs/LOCALE_SYSTEM.md) | Système de localisation et de traduction |
+| [docs/REGIONS.md](docs/REGIONS.md) | Régions et langues : détection, filtrage des services, sélecteur, limites connues |
 | [docs/LOGOS.md](docs/LOGOS.md) | Logos des services : génération, sources, ajout d'un service |
 | [docs/SYNCHRONISATION.md](docs/SYNCHRONISATION.md) | Synchronisation entre appareils : activation, protocole, sécurité |
 | [docs/VEHICULE.md](docs/VEHICULE.md) | Données du véhicule : état réel de l'API XPENG, configuration, dépannage |
-| [docs/DEBUG_LOCALE.md](docs/DEBUG_LOCALE.md) | Notes de débogage du changement de langue |
-| [docs/ENRICHMENT_PLAN.md](docs/ENRICHMENT_PLAN.md) • [docs/S3XYTHEATER_ANALYSIS.md](docs/S3XYTHEATER_ANALYSIS.md) | Analyses et pistes d'enrichissement du catalogue |
-| [docs/archive/](docs/archive/) | 📦 Documentation historique (proxies cloud Vercel/Netlify/Cloudflare, anciens guides logos basés sur des CDN tiers). **Périmée** |
+| [.env.example](.env.example) | Toutes les variables d'environnement du serveur, commentées |
+
+> Les guides de déploiement de proxies cloud (Vercel, Netlify, Cloudflare Workers)
+> ainsi que les notes de conception et de débogage antérieures ont été **supprimés
+> en v2.5.1** : ils décrivaient une architecture retirée en v2.2. Ils restent
+> consultables dans l'historique git.
 
 ---
 
 ## 🗺️ Roadmap
 
-### ✅ Version 2.1 (Actuelle)
-- [x] 200 services disponibles
-- [x] 10 langues complètes
-- [x] Système de régionalisation dynamique
-- [x] Groupes régionaux intelligents
-- [x] Suggestions de régions basées sur proximité
-- [x] Support logos réels (URLs + emojis)
-- [x] Changement langue instantané
+### ✅ Livré
 
-### ✅ Version 2.4
-- [x] Intégration logos réels pour tous les services (embarqués, hors ligne)
-- [x] Sections dans LocaleSelector (Global, Suggérés, Autres)
-- [x] Badges nombre de services par région
-- [x] PWA (Progressive Web App)
-- [x] Mode hors-ligne
+| Version | Contenu |
+|---|---|
+| **2.1** | 200 services, régionalisation dynamique, groupes régionaux, suggestions par proximité, changement de langue instantané |
+| **2.2** | Auto-hébergement : serveur + proxy IPTV same-origin, suppression de tous les backends cloud tiers |
+| **2.3** | PWA installable, mode hors ligne |
+| **2.4** | Logos embarqués pour les 200 services (plus aucun CDN tiers), sections et badges du sélecteur de région |
+| **2.5** | Synchronisation entre appareils sur votre propre serveur ; données du véhicule (⚠️ XPENG ne publie aucune API publique — voir [docs/VEHICULE.md](docs/VEHICULE.md)) |
+| **2.5.1** | Ménage du dépôt : documentation périmée supprimée, listes de régions dédupliquées, dépendances inutilisées retirées |
 
-### ✅ Version 2.5
-- [x] Synchronisation entre appareils, sur votre propre serveur — sans service tiers
-- [x] Intégration données véhicule : batterie, autonomie, charge, position
-      (⚠️ XPENG ne publie aucune API publique — voir [docs/VEHICULE.md](docs/VEHICULE.md))
+### 🚀 Pistes
 
-### 🚀 Version 3.0 (Futur)
 - [ ] Commandes vocales
 - [ ] Widgets personnalisables
 - [ ] Mode multi-utilisateurs
+- [ ] Compléter les 10 langues partiellement traduites ([docs/REGIONS.md](docs/REGIONS.md#langues))
+- [ ] Rendre les régions européennes réellement distinctes ([limite connue](docs/REGIONS.md#️-limite-connue--les-régions-européennes-sont-équivalentes))
 
 ---
 
 ## 📝 Changelog
+
+### **v2.5.1** — 2026-08-20 🧹 Attribution, ménage et documentation
+
+#### ✏️ Attribution
+- Pied de page et écran **À propos** : le projet est désormais crédité à **[@PPierre89](https://github.com/PPierre89)**, avec le dépôt `PPierre89/xpengmedia` comme source
+- Liens **Support** (cagnotte) et **Discord FR** retirés du pied de page
+
+#### 🧹 Ménage
+- **Numéro de version unifié** : `package.json` est la seule source, injectée dans l'app à la compilation. L'écran « À propos » affichait `1.0.0`, le README `2.1.0` et `package.json` `0.0.0`
+- **Liste des régions dédupliquée** : les 20 régions étaient déclarées deux fois (nom, drapeau, langue) dans `LocaleContext.tsx` **et** `regionsMetadata.ts`. `regionsMetadata.ts` devient la source unique, dont `LocaleContext` dérive sa liste. Les deux listes étaient identiques, mais rien ne le garantissait
+- **4 dépendances retirées** car inutilisées : `@tailwindcss/typography` (aucune classe `prose`), `@tailwindcss/aspect-ratio` (intégré à Tailwind), `@tailwindcss/line-clamp` (intégré depuis Tailwind 3.3), `tailwindcss-animate` (aucune classe `animate-in`). `@tailwindcss/forms` est conservé : il restyle globalement les champs de saisie
+
+#### 📖 Documentation
+- **[docs/REGIONS.md](docs/REGIONS.md)** remplace `LOCALE_SYSTEM.md` et `REGIONAL_SYSTEM.md` : l'un décrivait le code par numéros de ligne devenus faux et des `console.log` supprimés, l'autre était une proposition de conception déjà implémentée
+- **32 documents périmés supprimés** : `docs/archive/` (27 guides de proxies Vercel/Cloudflare, architecture retirée en v2.2), `DEBUG_LOCALE.md`, `ENRICHMENT_PLAN.md`, `S3XYTHEATER_ANALYSIS.md`. L'avertissement sur les identifiants Xtream présents dans l'historique git est conservé dans [DEPLOY-NAS-UGREEN.md](DEPLOY-NAS-UGREEN.md)
+- **[DEPLOY-NAS-UGREEN.md](DEPLOY-NAS-UGREEN.md)** : la table des variables ignorait `API_TOKEN`, `DATA_DIR`, `SYNC_ALLOW_SECRETS`, `VEHICLE_PROVIDER` et le volume de données, tous introduits en v2.5
+- **Chiffres du README corrigés** : « 10 langues » alors qu'il y en a 12, dont seules 2 sont complètes ; « Vidéo 85+ / Musique 45+ / Jeux 35+ » au lieu de 118 / 20 / 21 ; React 18.3 et TypeScript 5.6 au lieu de 19.2 et 5.9 ; « Lucide React » qui n'est pas une dépendance ; Node 18+ alors que les tests exigent Node 22
+
+#### 🔒 Dernier appel à un tiers supprimé
+- **La police Urbanist était chargée depuis `fonts.googleapis.com`** à chaque démarrage. C'était la dernière requête vers un CDN tiers : elle contredisait la suppression des CDN de logos (v2.4) et la promesse de fonctionnement hors ligne — sans réseau, toute la typographie basculait sur la pile système. Elle est désormais servie depuis `/public/fonts` et pré-mise en cache par le service worker. Google diffusant le même fichier pour les graisses 300 à 700 (police variable), cela ne coûte que **deux fichiers, 44 Ko au total**, et le rendu est strictement identique
+
+#### 🔍 Limite documentée
+- Les **12 régions européennes affichent les mêmes 162 services** : tout service marqué `france`, `germany`, `uk`, `spain` ou `italy` porte aussi le scope `europe`. Les scopes nationaux n'ont donc aucun effet sur le filtrage. Rien n'a été modifié — restreindre ces services serait un choix de produit, pas une correction. Voir [docs/REGIONS.md](docs/REGIONS.md#️-limite-connue--les-régions-européennes-sont-équivalentes)
+
+---
 
 ### **v2.5.0** — 2026-08-20 🔄 Synchronisation & données véhicule
 
@@ -709,19 +736,36 @@ Les contributions sont les bienvenues !
 
 ## 📄 Licence
 
-Ce projet est sous licence **MIT**.
+Ce projet est sous licence **MIT**, héritée du dépôt d'origine.
+
+> ⚠️ Le dépôt **ne contient pas encore de fichier `LICENSE`**. La licence MIT
+> impose de conserver l'avis de copyright d'origine : le fichier reste à ajouter,
+> avec la ligne de copyright de [@dlnraja](https://github.com/dlnraja) puis la
+> vôtre. Ajouter ce fichier est une déclaration juridique, elle vous revient.
+
+Ressources embarquées et leurs licences :
+
+| Ressource | Licence |
+|---|---|
+| Marques officielles ([Simple Icons](https://github.com/simple-icons/simple-icons)) | CC0 1.0 |
+| Pictogrammes ([Heroicons](https://heroicons.com)) | MIT |
+| Police [Urbanist](https://github.com/coreyhu/Urbanist) | SIL OFL 1.1 |
+
+Les logos et marques des services cités restent la propriété de leurs
+détenteurs respectifs et ne sont utilisés que pour les identifier.
 
 ---
 
 ## 👨‍💻 Auteurs
 
-**Projet d'origine — [@dlnraja](https://github.com/dlnraja)**
-- Dépôt amont : [dlnraja/xpengmedia](https://github.com/dlnraja/xpengmedia)
-
-**Ce fork — [@PPierre89](https://github.com/PPierre89)**
+**[@PPierre89](https://github.com/PPierre89)**
 - Dépôt : [PPierre89/xpengmedia](https://github.com/PPierre89/xpengmedia)
-- Ajouts : auto-hébergement Docker/NAS avec proxy IPTV local, durcissement de sécurité du proxy
-- Déploiement : auto-hébergé, image `ghcr.io/ppierre89/xpengmedia`
+- Image : `ghcr.io/ppierre89/xpengmedia`
+- Auto-hébergement Docker/NAS avec proxy IPTV local et durcissement de sécurité,
+  logos embarqués, PWA, synchronisation entre appareils, données du véhicule
+
+Le projet est parti d'un fork de [@dlnraja/xpengmedia](https://github.com/dlnraja/xpengmedia),
+sous licence MIT.
 
 ---
 

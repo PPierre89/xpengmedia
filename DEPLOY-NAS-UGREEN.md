@@ -95,6 +95,30 @@ Exemple, playlist hébergée sur le NAS lui-même :
       PROXY_ALLOW_PRIVATE: "true"
 ```
 
+### Synchronisation entre appareils et données du véhicule
+
+Ces deux fonctionnalités sont **désactivées tant qu'`API_TOKEN` est vide** —
+c'est le comportement par défaut. Voir [docs/SYNCHRONISATION.md](docs/SYNCHRONISATION.md)
+et [docs/VEHICULE.md](docs/VEHICULE.md).
+
+| Variable | Défaut | À quoi ça sert |
+|---|---|---|
+| `API_TOKEN` | *(vide)* | Jeton partagé par tes appareils. Il protège `/api/sync` **et** `/api/vehicle`. Vide = les deux API répondent `503`. Génère-le avec `openssl rand -base64 32`. |
+| `DATA_DIR` | `/app/data` | Dossier des données persistantes **dans** le conteneur. À monter en volume, sinon tout est perdu au redémarrage. |
+| `SYNC_ALLOW_SECRETS` | `false` | Inclut `iptvConfig` dans la synchronisation. Ce fichier contient l'identifiant et le **mot de passe** IPTV en clair : laisse `false` sauf raison précise. |
+| `VEHICLE_PROVIDER` | `off` | `demo` pour un état simulé, `xpeng` pour le compte constructeur (nécessite les variables `XPENG_*`, voir [docs/VEHICULE.md](docs/VEHICULE.md)). |
+| `VEHICLE_POLL_MS` | `60000` | Fraîcheur du cache de l'état du véhicule |
+
+Le volume n'est pas optionnel dès que `API_TOKEN` est défini :
+
+```yaml
+    environment:
+      API_TOKEN: "colle-ici-ton-jeton"
+      VEHICLE_PROVIDER: "demo"
+    volumes:
+      - xpengmedia-data:/app/data
+```
+
 ---
 
 ## 📺 Pourquoi le proxy local change tout
@@ -154,6 +178,7 @@ Deux raccourcis sont exposés par le manifeste : **Player IPTV** et **Tous les s
 | Pages HTML | réseau d'abord, cache en secours si hors ligne |
 | `/assets/*` (fichiers hachés) | cache d'abord — immuables par construction |
 | Icônes, manifeste, autres fichiers | cache d'abord, rafraîchis en tâche de fond |
+| Police Urbanist (`/fonts/*.woff2`) | pré-mise en cache à l'installation, servie localement |
 | **`/api/proxy`** (flux et API IPTV) | **jamais intercepté** |
 | **`/healthz`** | **jamais intercepté** |
 
@@ -211,6 +236,15 @@ Les protections sont couvertes par des tests :
 ```bash
 npm run test:security
 ```
+
+### ⚠️ Identifiants Xtream présents dans l'historique git
+
+Jusqu'en août 2026, plusieurs guides du dépôt contenaient les identifiants
+Xtream réels d'un abonnement, lisibles dans une URL de flux au format
+`/live/<utilisateur>/<mot_de_passe>/<id>.m3u8`. Ces fichiers ont été retirés,
+mais **git conserve leur contenu dans l'historique** : les identifiants
+concernés doivent être considérés comme compromis et changés auprès du
+fournisseur.
 
 ---
 
