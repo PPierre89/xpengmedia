@@ -17,6 +17,7 @@ import { AddServiceFromListModal } from '../components/modals/AddServiceFromList
 import { StarIcon } from '@heroicons/react/24/solid';
 import { PlatformIcon } from '../components/icons/PlatformIcon';
 import { filterPlatformsByRegion } from '../utils/regionFilter';
+import { VehicleCard } from '../components/vehicle/VehicleCard';
 
 export const HomePage: React.FC = () => {
   const { locale, t } = useLocale();
@@ -125,6 +126,9 @@ export const HomePage: React.FC = () => {
       >
         <SearchBar />
       </motion.section>
+
+      {/* État du véhicule — ne s'affiche que si l'intégration est configurée */}
+      <VehicleCard />
 
       {/* Hero Section optimisé pour tablette paysage */}
       <motion.section

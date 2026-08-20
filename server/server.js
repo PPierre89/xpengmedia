@@ -2,9 +2,15 @@
 /**
  * XPENG Media Hub — serveur tout-en-un pour auto-hébergement (NAS UGREEN, Docker, Raspberry Pi...)
  *
- * Sert deux choses sur un seul port :
+ * Sert quatre choses sur un seul port :
  *   1. L'application React compilée (dossier dist/)
  *   2. Un proxy CORS local sur /api/proxy?url=... (IPTV / Xtream / M3U / HLS)
+ *   3. La synchronisation des préférences entre appareils sur /api/sync
+ *   4. Les données du véhicule sur /api/vehicle (voir server/vehicle.js)
+ *
+ * Les points 3 et 4 sont désactivés tant qu'API_TOKEN n'est pas défini : ils
+ * touchent aux données personnelles (favoris, position du véhicule,
+ * identifiants du compte constructeur) et ne doivent jamais être ouverts.
  *
  * Comme le proxy est servi par la même origine que la page, il n'y a plus AUCUN
  * problème CORS et plus besoin des proxies publics (corsproxy.io, codetabs...).
@@ -35,6 +41,14 @@
  *   ALLOWED_ORIGINS      Origines autorisées en CORS, séparées par des virgules
  *                        (défaut: aucune — l'app étant servie par ce serveur,
  *                         elle n'a besoin d'aucun en-tête CORS)
+ *   API_TOKEN            Jeton protégeant /api/sync et /api/vehicle.
+ *                        Non défini = ces deux API sont désactivées.
+ *   DATA_DIR             Dossier de données persistantes     (défaut: ./data)
+ *   SYNC_ALLOW_SECRETS   'true' pour synchroniser aussi la configuration IPTV
+ *                        (identifiants en clair)             (défaut: false)
+ *   VEHICLE_PROVIDER     'demo' | 'xpeng' | 'off'            (défaut: off)
+ *                        Les variables XPENG_* sont documentées dans
+ *                        server/vehicle.js et docs/VEHICULE.md.
  */
 
 import http from 'node:http';
@@ -45,6 +59,10 @@ import path from 'node:path';
 import net from 'node:net';
 import dns from 'node:dns';
 import { fileURLToPath } from 'node:url';
+
+import { JsonStore } from './store.js';
+import { createSyncHandlers, MAX_BODY_BYTES } from './sync.js';
+import { createVehicleHandlers, readVehicleConfig } from './vehicle.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -62,6 +80,21 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '')
   .filter(Boolean);
 
 const PROXY_PATH = '/api/proxy';
+const SYNC_PATH = '/api/sync';
+const VEHICLE_PATH = '/api/vehicle';
+
+const API_TOKEN = process.env.API_TOKEN || '';
+const DATA_DIR = path.resolve(process.env.DATA_DIR || path.join(__dirname, '..', 'data'));
+const SYNC_ALLOW_SECRETS = /^(1|true|yes|on)$/i.test(process.env.SYNC_ALLOW_SECRETS || '');
+
+const store = new JsonStore(DATA_DIR);
+const sync = createSyncHandlers({
+  store,
+  token: API_TOKEN,
+  allowSecrets: SYNC_ALLOW_SECRETS,
+});
+const vehicleConfig = readVehicleConfig(process.env);
+const vehicle = createVehicleHandlers({ store, config: vehicleConfig });
 const MAX_PLAYLIST_BYTES = 32 * 1024 * 1024; // les playlists sont réécrites, donc bufferisées
 
 const MIME_TYPES = {
@@ -442,6 +475,93 @@ function readBody(res, limit) {
 }
 
 /* ------------------------------------------------------------------ */
+/* API personnelles (synchronisation + véhicule)                       */
+/* ------------------------------------------------------------------ */
+
+/** Lit un corps JSON borné en taille : un client ne doit pas saturer la RAM. */
+function readJsonBody(req, limit = MAX_BODY_BYTES) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let size = 0;
+    req.on('data', (chunk) => {
+      size += chunk.length;
+      if (size > limit) {
+        reject(Object.assign(new Error('corps de requête trop volumineux'), { statusCode: 413 }));
+        req.destroy();
+        return;
+      }
+      chunks.push(chunk);
+    });
+    req.on('end', () => {
+      const raw = Buffer.concat(chunks).toString('utf8');
+      if (!raw.trim()) return resolve({});
+      try {
+        resolve(JSON.parse(raw));
+      } catch {
+        reject(Object.assign(new Error('JSON invalide'), { statusCode: 400 }));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
+/**
+ * Enveloppe commune aux deux API : jeton obligatoire, erreurs normalisées.
+ *
+ * Le message d'erreur d'un provider peut contenir l'URL amont ; on ne renvoie
+ * donc au client que ce que le code a explicitement formulé, jamais une trace.
+ */
+async function handlePersonalApi(req, res, run) {
+  if (!API_TOKEN) {
+    return sendJson(req, res, 503, {
+      error: 'API désactivée',
+      detail: 'Définissez API_TOKEN pour activer /api/sync et /api/vehicle.',
+    });
+  }
+  if (!sync.authorize(req)) {
+    res.setHeader('WWW-Authenticate', 'Bearer');
+    return sendJson(req, res, 401, { error: 'Jeton manquant ou invalide' });
+  }
+  try {
+    const payload = await run();
+    return sendJson(req, res, 200, payload);
+  } catch (error) {
+    const status = Number(error?.statusCode) || 500;
+    if (status >= 500) console.warn('[api] échec :', error?.message);
+    return sendJson(req, res, status, {
+      error: status >= 500 ? 'Erreur interne' : 'Requête refusée',
+      detail: error?.message ?? '',
+    });
+  }
+}
+
+function handleSync(req, res) {
+  return handlePersonalApi(req, res, async () => {
+    if (req.method === 'POST') return sync.sync(await readJsonBody(req));
+    if (req.method === 'DELETE') return sync.reset();
+    return sync.pull();
+  });
+}
+
+function handleVehicle(req, res, pathname) {
+  const route = pathname.slice(VEHICLE_PATH.length) || '/';
+
+  return handlePersonalApi(req, res, async () => {
+    if (route === '/status') return vehicle.status();
+    if (route === '/state') {
+      return vehicle.state({ force: req.headers['cache-control'] === 'no-cache' });
+    }
+    if (route === '/credentials') {
+      if (req.method === 'POST') return vehicle.setCredentials(await readJsonBody(req, 8 * 1024));
+      if (req.method === 'DELETE') return vehicle.clearCredentials();
+      // Les identifiants ne sont jamais relisibles : l'API est en écriture seule.
+      throw Object.assign(new Error('utilisez POST ou DELETE'), { statusCode: 405 });
+    }
+    throw Object.assign(new Error(`route inconnue : ${VEHICLE_PATH}${route}`), { statusCode: 404 });
+  });
+}
+
+/* ------------------------------------------------------------------ */
 /* Proxy                                                               */
 /* ------------------------------------------------------------------ */
 
@@ -654,7 +774,28 @@ const server = http.createServer((req, res) => {
       app: 'xpengmedia',
       proxy: PROXY_PATH,
       uptime: Math.round(process.uptime()),
+      // Capacités annoncées sans authentification : le client doit savoir
+      // quoi proposer dans les réglages avant d'avoir un jeton. Aucun secret
+      // n'est révélé, seulement l'existence des fonctionnalités.
+      sync: { enabled: sync.enabled, keys: sync.keys },
+      vehicle: { enabled: vehicle.enabled, provider: vehicle.providerId },
     });
+  }
+
+  if (pathname === SYNC_PATH) {
+    if (!['GET', 'POST', 'DELETE'].includes(req.method)) {
+      res.writeHead(405, { Allow: 'GET, POST, DELETE, OPTIONS' }).end();
+      return;
+    }
+    return handleSync(req, res);
+  }
+
+  if (pathname === VEHICLE_PATH || pathname.startsWith(`${VEHICLE_PATH}/`)) {
+    if (!['GET', 'POST', 'DELETE'].includes(req.method)) {
+      res.writeHead(405, { Allow: 'GET, POST, DELETE, OPTIONS' }).end();
+      return;
+    }
+    return handleVehicle(req, res, pathname);
   }
 
   if (pathname === PROXY_PATH) {
@@ -693,6 +834,20 @@ if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
     );
     console.log(
       `  ▸ CORS          : ${ALLOWED_ORIGINS.length ? ALLOWED_ORIGINS.join(', ') : 'désactivé (same-origin)'}`
+    );
+    console.log(
+      `  ▸ Sync          : ${
+        sync.enabled
+          ? `activée (${DATA_DIR}${SYNC_ALLOW_SECRETS ? ', identifiants IPTV inclus' : ''})`
+          : 'désactivée (définir API_TOKEN)'
+      }`
+    );
+    console.log(
+      `  ▸ Véhicule      : ${
+        vehicle.enabled
+          ? `provider « ${vehicle.providerId} »`
+          : 'désactivé (définir VEHICLE_PROVIDER)'
+      }`
     );
   });
 
