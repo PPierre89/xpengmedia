@@ -16,7 +16,6 @@ export type Region =
   | 'sweden'
   | 'norway'
   | 'denmark'
-  | 'finland'
   | 'switzerland'
   | 'austria'
   | 'usa'
@@ -119,7 +118,7 @@ export const regionsMetadata: RegionMetadata[] = [
     flag: '🇸🇪',
     languages: ['sv'],
     group: 'nordic',
-    neighbors: ['norway', 'denmark', 'finland'],
+    neighbors: ['norway', 'denmark'],
   },
   {
     code: 'norway',
@@ -127,7 +126,7 @@ export const regionsMetadata: RegionMetadata[] = [
     flag: '🇳🇴',
     languages: ['no'],
     group: 'nordic',
-    neighbors: ['sweden', 'denmark', 'finland'],
+    neighbors: ['sweden', 'denmark'],
   },
   {
     code: 'denmark',
@@ -135,19 +134,7 @@ export const regionsMetadata: RegionMetadata[] = [
     flag: '🇩🇰',
     languages: ['da'],
     group: 'nordic',
-    neighbors: ['sweden', 'norway', 'finland', 'germany'],
-  },
-  {
-    // Pas de traduction `fi` : l'interface retombe sur l'anglais, comme le
-    // prévoit `t()`. La région existe parce que le catalogue contient Yle
-    // Areena, la télévision publique finlandaise — sans elle, ce service ne
-    // serait visible depuis aucune région.
-    code: 'finland',
-    name: 'Suomi',
-    flag: '🇫🇮',
-    languages: ['fi'],
-    group: 'nordic',
-    neighbors: ['sweden', 'norway', 'denmark'],
+    neighbors: ['sweden', 'norway', 'germany'],
   },
   // Pays anglophones
   {

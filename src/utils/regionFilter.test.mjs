@@ -59,6 +59,10 @@ describe('filtrage par région', () => {
     assert.equal(shows('sweden', 'svt-play'), true);
     assert.equal(shows('denmark', 'svt-play'), false);
     assert.equal(shows('norway', 'svt-play'), false);
+
+    assert.equal(shows('denmark', 'dr-tv'), true);
+    assert.equal(shows('norway', 'nrk-tv'), true);
+    assert.equal(shows('sweden', 'nrk-tv'), false);
   });
 
   test('un service mondial est proposé partout sauf en Chine', () => {
@@ -71,7 +75,7 @@ describe('filtrage par région', () => {
   });
 
   test('un service pan-européen couvre toute l’Europe et rien d’autre', () => {
-    for (const region of ['france', 'germany', 'sweden', 'uk', 'finland']) {
+    for (const region of ['france', 'germany', 'sweden', 'uk', 'belgium']) {
       assert.equal(shows(region, 'chargemap'), true, `chargemap devrait être visible en ${region}`);
     }
     assert.equal(shows('usa', 'chargemap'), false);
@@ -80,7 +84,9 @@ describe('filtrage par région', () => {
 
   test('chaque scope national correspond à une région existante', () => {
     // Sans quoi un service serait dans le catalogue sans être visible nulle
-    // part — le cas qui a rendu la région Finlande nécessaire.
+    // part. C'est ce qu'a révélé Yle Areena, seule chaîne finlandaise du
+    // catalogue alors que la Finlande n'est pas une région couverte : elle a
+    // été retirée plutôt que d'ajouter un marché sans utilisateurs.
     const regionCodes = new Set(regionsMetadata.map((r) => r.code));
     const broad = new Set(['global', 'europe', 'north-america', 'asia', 'china', 'australia', 'middle-east']);
 

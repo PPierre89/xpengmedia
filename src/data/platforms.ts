@@ -19,8 +19,7 @@ export type AvailabilityScope =
   | 'uk'
   | 'sweden'
   | 'norway'
-  | 'denmark'
-  | 'finland';
+  | 'denmark';
 
 export interface PlatformLink {
   id: string;
@@ -914,15 +913,6 @@ export const videoCategories: PlatformCategory[] = [
         icon: '/icons/services/nrk-tv.svg',
         availability: ['norway'],
         tags: ['Norvège', 'Public', 'Gratuit'],
-      },
-      {
-        id: 'yle-areena',
-        name: '\uD83C\uDDEB\uD83C\uDDEE Yle Areena',
-        description: 'Service de streaming de la télévision publique finlandaise.',
-        url: 'https://areena.yle.fi/',
-        icon: '/icons/services/yle-areena.svg',
-        availability: ['finland'],
-        tags: ['Finlande', 'Public', 'Gratuit'],
       },
       {
         id: 'stan',

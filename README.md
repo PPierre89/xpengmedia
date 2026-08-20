@@ -14,7 +14,7 @@
 
 ---
 
-### 200 services • 12 langues • 21 régions • Mode clair/sombre • 100% responsive
+### 199 services • 12 langues • 20 régions • Mode clair/sombre • 100% responsive
 
 ![XPENG Media Hub](https://img.shields.io/badge/Status-Production-brightgreen?style=flat-square)
 ![Version](https://img.shields.io/badge/Version-2.6.0-blue?style=flat-square)
@@ -48,8 +48,8 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 - **Filtrage strict** : une chaîne française n'apparaît pas quand la région est réglée sur l'Allemagne
 - **Suggestions de régions** basées sur la proximité géographique et linguistique
 
-### 📺 **200 services organisés**
-- **🎬 Vidéo** : 118 services (Netflix, Disney+, Prime Video…)
+### 📺 **199 services organisés**
+- **🎬 Vidéo** : 117 services (Netflix, Disney+, Prime Video…)
 - **🎵 Musique** : 20 services (Spotify, Apple Music, Deezer…)
 - **🎮 Jeux** : 21 services (GeForce NOW, Xbox Cloud Gaming…)
 - **🔋 Recharge** : 13 services (ABRP, Chargemap, PlugShare…)
@@ -81,7 +81,7 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 
 <div align="center">
 
-### 21 régions • 6 groupes • Suggestions intelligentes
+### 20 régions • 6 groupes • Suggestions intelligentes
 
 </div>
 
@@ -118,10 +118,9 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 
 | Pays | Drapeau | Langues | Voisins | Services spécifiques |
 |------|---------|---------|---------|----------------------|
-| **Suède** | 🇸🇪 | Suédois | 🇳🇴 🇩🇰 🇫🇮 | SVT Play |
-| **Norvège** | 🇳🇴 | Norvégien | 🇸🇪 🇩🇰 🇫🇮 | NRK TV |
-| **Danemark** | 🇩🇰 | Danois | 🇸🇪 🇳🇴 🇫🇮 🇩🇪 | DR TV |
-| **Finlande** | 🇫🇮 | *interface EN* | 🇸🇪 🇳🇴 🇩🇰 | Yle Areena |
+| **Suède** | 🇸🇪 | Suédois | 🇳🇴 🇩🇰 | SVT Play |
+| **Norvège** | 🇳🇴 | Norvégien | 🇸🇪 🇩🇰 | NRK TV |
+| **Danemark** | 🇩🇰 | Danois | 🇸🇪 🇳🇴 🇩🇪 | DR TV |
 
 ---
 
@@ -192,7 +191,7 @@ région. Toute clé manquante retombe sur l'anglais, jamais sur un libellé vide
 
 <div align="center">
 
-### 200 services • 5 catégories • Organisés par région
+### 199 services • 5 catégories • Organisés par région
 
 </div>
 
@@ -380,12 +379,12 @@ région. Toute clé manquante retombe sur l'anglais, jamais sur un libellé vide
 
 | Catégorie | Nombre de services | % du total |
 |-----------|-------------------|------------|
-| 🎬 **Vidéo** | 118 | 59 % |
+| 🎬 **Vidéo** | 117 | 59 % |
 | 🎵 **Musique** | 20 | 10 % |
 | 🎮 **Jeux** | 21 | 11 % |
-| 🔋 **Recharge** | 13 | 7 % |
+| 🔋 **Recharge** | 13 | 6 % |
 | 🌐 **Web** | 28 | 14 % |
-| **TOTAL** | **200** | **100 %** |
+| **TOTAL** | **199** | **100 %** |
 
 </div>
 
@@ -507,7 +506,7 @@ xpengmedia/
 │   ├── context/             # React Context (Favorites, Locale, Theme, Sync)
 │   ├── types/               # Types partagés (FavoriteItem…)
 │   ├── utils/               # Filtrage par région, moteur de synchronisation, API serveur
-│   ├── data/                # platforms.ts (200 services), regionsMetadata.ts (20 régions)
+│   ├── data/                # platforms.ts (199 services), regionsMetadata.ts (20 régions)
 │   ├── hooks/               # Hooks (favoris intelligents, état du véhicule)
 │   ├── pages/               # Pages de l'application
 │   ├── App.tsx
@@ -556,7 +555,7 @@ xpengmedia/
 | **2.4** | Logos embarqués pour les 200 services (plus aucun CDN tiers), sections et badges du sélecteur de région |
 | **2.5** | Synchronisation entre appareils sur votre propre serveur ; données du véhicule (⚠️ XPENG ne publie aucune API publique — voir [docs/VEHICULE.md](docs/VEHICULE.md)) |
 | **2.5.1** | Ménage du dépôt : documentation périmée supprimée, listes de régions dédupliquées, dépendances inutilisées retirées, police servie localement |
-| **2.6** | Le filtrage régional filtre vraiment : 65 services re-scopés, une chaîne nationale n'apparaît plus que dans son pays. Région 🇫🇮 Finlande ajoutée |
+| **2.6** | Le filtrage régional filtre vraiment : 65 services re-scopés, une chaîne nationale n'apparaît plus que dans son pays |
 
 ### 🚀 Pistes
 
@@ -580,17 +579,17 @@ La cause était dans les données : chaque service marqué `france`, `germany`, 
 - **65 services re-scopés.** Un service national ne porte plus que son pays : `tf1plus` → `['france']`, `ard-mediathek` → `['germany']`, `svt-play` → `['sweden']`.
 - **Services binationaux** portés par les données : Arte est franco-allemande → `['france', 'germany']`, et n'apparaît nulle part ailleurs. ADN et Wakanim couvrent l'Europe francophone → `['france', 'belgium', 'switzerland']`.
 - **`europe` réservé aux services réellement pan-européens** : Chargemap, Chargeprice, Total EV Charge, ChargePoint, Tesla Supercharger, Deezer, Radioplayer, Boosteroid, TVMucho, XPENG Europe. Dix services, contre 65 auparavant.
-- **7 scopes nationaux ajoutés** : `belgium`, `switzerland`, `austria`, `netherlands`, `sweden`, `norway`, `denmark`, `finland`. Les chaînes belges, suisses, néerlandaises et nordiques n'avaient aucun moyen d'être scopées correctement.
+- **7 scopes nationaux ajoutés** : `belgium`, `switzerland`, `austria`, `netherlands`, `sweden`, `norway`, `denmark`. Les chaînes belges, suisses, néerlandaises et nordiques n'avaient aucun moyen d'être scopées correctement.
 - **3 scopes de groupe retirés** — `western_europe`, `northern_europe`, `anglophone` : tous les services qui les portaient portaient aussi `europe`, ils ne servaient à rien.
 
-#### 🇫🇮 Une région ajoutée
-Le catalogue contient **Yle Areena**, la télévision publique finlandaise. Une fois scopée `finland`, elle n'aurait été visible depuis aucune région : la Finlande n'en était pas une. Elle a donc été ajoutée (détection sur `Europe/Helsinki`, interface en anglais faute de traduction `fi`). **21 régions** désormais.
+#### 🗑️ Un service retiré
+Le re-scoping a mis au jour **Yle Areena**, la télévision publique finlandaise : seule chaîne d'un pays qui n'est pas une région couverte, elle n'aurait été visible **depuis aucune région**. Faute d'utilisateurs finlandais, elle est **retirée du catalogue** plutôt que d'ouvrir un marché pour un seul service. Le catalogue passe à **199 services**.
 
 #### 🧪 9 nouveaux tests
-`src/utils/regionFilter.test.mjs` (`npm run test:regions`) verrouille la règle : un service national reste dans son pays, un binational apparaît dans ses deux pays, les voisins ne partagent pas leurs chaînes, la Chine n'accepte pas `global`, **chaque scope national correspond à une région existante**, et **aucun service n'est invisible depuis toutes les régions**. Les deux derniers auraient attrapé le cas Yle Areena tout seuls.
+`src/utils/regionFilter.test.mjs` (`npm run test:regions`) verrouille la règle : un service national reste dans son pays, un binational apparaît dans ses deux pays, les voisins ne partagent pas leurs chaînes, la Chine n'accepte pas `global`, **chaque scope national correspond à une région existante**, et **aucun service n'est invisible depuis toutes les régions**. Ce sont ces deux derniers qui ont fait remonter Yle Areena.
 
 #### 📊 Résultat
-Les régions ne sont plus interchangeables : 🇫🇷 131 · 🇺🇸 120 · 🇩🇪 116 · 🇪🇸 114 · 🇧🇪 🇨🇭 🇬🇧 113 · 🇮🇹 111 · 🇳🇱 110 · 🇦🇹 🇸🇪 🇳🇴 🇩🇰 🇫🇮 109 · 🇦🇺 105 · 🇸🇬 103 · 🇦🇪 🇶🇦 🇮🇱 99 · 🌍 98 · 🇨🇳 28.
+Les régions ne sont plus interchangeables : 🇫🇷 131 · 🇺🇸 120 · 🇩🇪 116 · 🇪🇸 114 · 🇧🇪 🇨🇭 🇬🇧 113 · 🇮🇹 111 · 🇳🇱 110 · 🇦🇹 🇸🇪 🇳🇴 🇩🇰 109 · 🇦🇺 105 · 🇸🇬 103 · 🇦🇪 🇶🇦 🇮🇱 99 · 🌍 98 · 🇨🇳 28.
 
 ---
 

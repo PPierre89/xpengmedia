@@ -10,7 +10,7 @@ quelle langue.
 Tout part de `src/data/regionsMetadata.ts` :
 
 ```ts
-export type Region = 'global' | 'france' | … ;   // 21 codes
+export type Region = 'global' | 'france' | … ;   // 20 codes
 
 export interface RegionMetadata {
   code: Region;
@@ -42,25 +42,19 @@ Pour **ajouter une région**, il suffit donc d'une entrée dans
 
 ---
 
-## Les 21 régions
+## Les 20 régions
 
 | Groupe | Régions |
 |---|---|
 | `global` | 🌍 Global / International |
 | `western_europe` | 🇫🇷 France · 🇪🇸 España · 🇮🇹 Italia · 🇧🇪 België / Belgique |
 | `northern_europe` | 🇩🇪 Deutschland · 🇦🇹 Österreich · 🇨🇭 Schweiz / Suisse · 🇳🇱 Nederland |
-| `nordic` | 🇸🇪 Sverige · 🇳🇴 Norge · 🇩🇰 Danmark · 🇫🇮 Suomi |
+| `nordic` | 🇸🇪 Sverige · 🇳🇴 Norge · 🇩🇰 Danmark |
 | `anglophone` | 🇬🇧 United Kingdom · 🇺🇸 United States · 🇦🇺 Australia |
 | `asia` | 🇸🇬 Singapore · 🇨🇳 中国 China |
 | `middle_east` | 🇦🇪 UAE · 🇶🇦 Qatar · 🇮🇱 Israel |
 
 Le groupe et le champ `neighbors` alimentent les suggestions du sélecteur.
-
-> 🇫🇮 **Suomi** n'a pas de traduction `fi` : l'interface y reste en anglais,
-> comme le prévoit le repli de `t()`. La région existe parce que le catalogue
-> contient **Yle Areena**, la télévision publique finlandaise : sans elle, ce
-> service ne serait visible depuis aucune région. Un test le vérifie
-> (« aucun service n'est invisible depuis toutes les régions »).
 
 ---
 
@@ -79,7 +73,6 @@ que la langue seule confond :
 | `Europe/Brussels` | `fr-BE` | 🇧🇪 België (interface en `nl`) |
 | `Asia/Qatar` | `ar-QA` | 🇶🇦 Qatar |
 | `Asia/Dubai` | `ar-*` | 🇦🇪 UAE |
-| `Europe/Helsinki` | `fi-*` | 🇫🇮 Suomi (interface en `en`) |
 
 Sans correspondance, le repli est 🇫🇷 France.
 
@@ -164,11 +157,14 @@ services inaccessibles derrière le pare-feu.
 
 | Portée nationale | |
 |---|---|
-| `france`, `belgium`, `switzerland`, `germany`, `austria`, `netherlands`, `spain`, `italy`, `uk`, `sweden`, `norway`, `denmark`, `finland` | un seul pays |
+| `france`, `belgium`, `switzerland`, `germany`, `austria`, `netherlands`, `spain`, `italy`, `uk`, `sweden`, `norway`, `denmark` | un seul pays |
 
 Chaque scope national **doit** correspondre à une région existante, sinon le
-service ne serait affiché nulle part. Deux tests le garantissent, et c'est ce
-qui a rendu la région Finlande nécessaire.
+service ne serait affiché nulle part. Deux tests le garantissent — et ils ont
+servi dès le premier passage : **Yle Areena**, la télévision publique
+finlandaise, était la seule chaîne d'un pays qui n'est pas une région couverte.
+Elle a été **retirée du catalogue** plutôt que d'ajouter un marché sans
+utilisateurs.
 
 Les anciens scopes de groupe `western_europe`, `northern_europe` et
 `anglophone` ont été **retirés** : tous les services qui les portaient
@@ -189,7 +185,7 @@ n'est comptée qu'une fois.
 | 🇧🇪 België / Belgique · 🇨🇭 Schweiz / Suisse · 🇬🇧 United Kingdom | 113 |
 | 🇮🇹 Italia | 111 |
 | 🇳🇱 Nederland | 110 |
-| 🇦🇹 Österreich · 🇸🇪 Sverige · 🇳🇴 Norge · 🇩🇰 Danmark · 🇫🇮 Suomi | 109 |
+| 🇦🇹 Österreich · 🇸🇪 Sverige · 🇳🇴 Norge · 🇩🇰 Danmark | 109 |
 | 🇦🇺 Australia | 105 |
 | 🇸🇬 Singapore | 103 |
 | 🇦🇪 UAE · 🇶🇦 Qatar · 🇮🇱 Israel | 99 |
@@ -209,10 +205,11 @@ françaises. Les 65 services concernés ont été re-scopés.
 
 1. L'ajouter dans `src/data/platforms.ts` avec le scope de **son pays**, pas
    `europe` — `europe` est réservé aux services réellement pan-européens.
-2. Si son pays n'est pas encore une région, ajouter la région dans
-   `regionsMetadata.ts` **et** son entrée dans `regionToAvailabilityMap` ;
-   TypeScript signale l'oubli, et un test vérifie qu'aucun scope national ne
-   reste orphelin.
+2. Si son pays n'est **pas** une région couverte, il n'y a que deux issues :
+   ajouter la région (dans `regionsMetadata.ts` **et** dans
+   `regionToAvailabilityMap` — TypeScript signale l'oubli), ou renoncer au
+   service. Un scope national sans région correspondante rend le service
+   invisible partout ; deux tests refusent ce cas.
 3. Déclarer son logo (`npm run logos`, voir [LOGOS.md](LOGOS.md)).
 
 ```bash

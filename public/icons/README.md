@@ -12,7 +12,7 @@ Tous les logos sont des SVG servis depuis `/public`, donc :
 
 - ✅ aucune requête vers un CDN tiers ;
 - ✅ disponibles hors ligne, mis en cache par le service worker ;
-- ✅ nets à toutes les tailles, poids négligeable (~170 Ko pour 200 logos).
+- ✅ nets à toutes les tailles, poids négligeable (~170 Ko pour 199 logos).
 
 ---
 
@@ -58,7 +58,7 @@ d'une palette de 8 par hachage du nom : un service garde donc toujours la même.
 Les drapeaux emoji des noms régionaux sont ignorés dans le calcul des
 initiales.
 
-Ce repli ne concerne plus le catalogue, dont les 200 logos sont embarqués. Il
+Ce repli ne concerne plus le catalogue, dont les 199 logos sont embarqués. Il
 protège les favoris enregistrés dans le `localStorage` qui pointeraient encore
 vers une ancienne URL de CDN.
 

@@ -36,7 +36,6 @@ const regionToAvailabilityMap: Record<Region, AvailabilityScope[]> = {
   sweden: ['global', 'europe', 'sweden'],
   norway: ['global', 'europe', 'norway'],
   denmark: ['global', 'europe', 'denmark'],
-  finland: ['global', 'europe', 'finland'],
   uk: ['global', 'europe', 'uk'],
 
   // Hors d'Europe
