@@ -121,7 +121,6 @@ export const logoMap = {
   'svt-play': { text: 'SVT', hex: '00B2A9' },
   'dr-tv': { text: 'DR', hex: '0E4194' },
   'nrk-tv': { text: 'NRK', hex: '00B9F2' },
-  'yle-areena': { text: 'Yle', hex: '00B4F0' },
   stan: { text: 'stan', hex: '0072CE' },
   'abc-iview': { text: 'ABC', hex: '1A1A1A' },
   'sbs-on-demand': { text: 'SBS', hex: '009FDF' },

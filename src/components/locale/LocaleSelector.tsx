@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocale } from '../../context/LocaleContext';
-import type { Region } from '../../context/LocaleContext';
+import type { Region } from '../../data/regionsMetadata';
 import { getRegionSections } from '../../data/regionsMetadata';
 import type { RegionSectionId } from '../../data/regionsMetadata';
 import { countServicesForRegion } from '../../utils/regionFilter';

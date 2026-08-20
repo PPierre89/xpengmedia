@@ -67,10 +67,29 @@ export const SettingsPage: React.FC = () => {
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold mb-4 dark:text-white">À propos</h3>
         <p className="text-gray-600 dark:text-gray-300 mb-2">
-          <span className="font-medium">Version:</span> 1.0.0
+          <span className="font-medium">Version&nbsp;:</span> {__APP_VERSION__}
+        </p>
+        <p className="text-gray-600 dark:text-gray-300 mb-2">
+          <span className="font-medium">Développé par&nbsp;:</span>{' '}
+          <a
+            href="https://github.com/PPierre89"
+            target="_blank"
+            rel="noreferrer"
+            className="text-primary-600 hover:underline dark:text-primary-400"
+          >
+            PPierre89
+          </a>
         </p>
         <p className="text-gray-600 dark:text-gray-300">
-          <span className="font-medium">Développé par:</span> Dlnraja
+          <span className="font-medium">Code source&nbsp;:</span>{' '}
+          <a
+            href="https://github.com/PPierre89/xpengmedia"
+            target="_blank"
+            rel="noreferrer"
+            className="text-primary-600 hover:underline dark:text-primary-400"
+          >
+            PPierre89/xpengmedia
+          </a>
         </p>
       </div>
     </div>

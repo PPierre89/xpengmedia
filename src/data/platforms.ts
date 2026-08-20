@@ -1,4 +1,25 @@
-export type AvailabilityScope = 'global' | 'china' | 'europe' | 'north-america' | 'asia' | 'australia' | 'middle-east' | 'western_europe' | 'northern_europe' | 'france' | 'germany' | 'spain' | 'italy' | 'uk' | 'anglophone';
+export type AvailabilityScope =
+  // Portées larges
+  | 'global'
+  | 'europe'
+  | 'north-america'
+  | 'asia'
+  | 'china'
+  | 'australia'
+  | 'middle-east'
+  // Portées nationales : un service national n'est visible que dans son pays.
+  | 'france'
+  | 'belgium'
+  | 'switzerland'
+  | 'germany'
+  | 'austria'
+  | 'netherlands'
+  | 'spain'
+  | 'italy'
+  | 'uk'
+  | 'sweden'
+  | 'norway'
+  | 'denmark';
 
 export interface PlatformLink {
   id: string;
@@ -72,7 +93,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Cinéma, séries, sport et documentaires premium français. Nécessite un navigateur compatible Widevine.',
         url: 'https://www.canalplus.com',
         icon: '/icons/services/canal-plus.svg',
-        availability: ['global', 'europe', 'western_europe', 'france'],
+        availability: ['france'],
         tags: ['Premium', 'Sport', 'Cinéma'],
       },
       {
@@ -81,7 +102,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV Freebox avec live, replay et VOD pour abonnés Free.',
         url: 'https://www.oqee.tv',
         icon: '/icons/services/oqee-tv.svg',
-        availability: ['france', 'europe'],
+        availability: ['france'],
         tags: ['TV', 'Free', 'Replay'],
       },
       {
@@ -468,7 +489,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV française en direct et replay gratuit.',
         url: 'https://www.molotov.tv',
         icon: '/icons/services/molotov.svg',
-        availability: ['global', 'europe', 'western_europe', 'france'],
+        availability: ['france'],
         tags: ['France', 'Gratuit'],
       },
       {
@@ -477,7 +498,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Service de streaming TV gratuit de Free avec replay et direct.',
         url: 'https://tv.free.fr',
         icon: '/icons/services/free-tv-plus.svg',
-        availability: ['europe'],
+        availability: ['france'],
         tags: ['France', 'Free', 'Gratuit'],
       },
       {
@@ -486,7 +507,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV en direct et replay pour abonnés Orange.',
         url: 'https://chaines-tv.orange.fr',
         icon: '/icons/services/orange-tv.svg',
-        availability: ['france', 'europe'],
+        availability: ['france'],
         tags: ['France', 'Orange', 'TV'],
       },
       {
@@ -495,7 +516,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV en direct, replay et VOD pour abonnés SFR sur ordinateur.',
         url: 'https://tv.sfr.fr',
         icon: '/icons/services/sfr-tv.svg',
-        availability: ['france', 'europe'],
+        availability: ['france'],
         tags: ['France', 'SFR', 'TV'],
       },
       {
@@ -504,7 +525,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV en direct et replay Bouygues Telecom depuis le navigateur.',
         url: 'https://www.bouyguestelecom.fr/tv-direct/',
         icon: '/icons/services/bouygues-btv.svg',
-        availability: ['france', 'europe'],
+        availability: ['france'],
         tags: ['France', 'Bouygues', 'TV'],
       },
       {
@@ -513,7 +534,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV européenne en streaming gratuit.',
         url: 'https://www.tvmucho.com',
         icon: '/icons/services/tvmucho.svg',
-        availability: ['global', 'europe'],
+        availability: ['europe'],
         tags: ['Europe', 'Gratuit'],
       },
       {
@@ -522,7 +543,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Culture, documentaires et cinéma d\'auteur FR/DE.',
         url: 'https://www.arte.tv/fr/direct/',
         icon: '/icons/services/arte.svg',
-        availability: ['global', 'europe', 'western_europe', 'france'],
+        availability: ['france', 'germany'],
         tags: ['Culture', 'Gratuit', 'FR/DE'],
       },
       {
@@ -531,7 +552,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV publique française avec replay gratuit.',
         url: 'https://www.france.tv/direct',
         icon: '/icons/services/francetv.svg',
-        availability: ['global', 'europe', 'western_europe', 'france'],
+        availability: ['france'],
         tags: ['Gratuit', 'France'],
       },
       {
@@ -540,7 +561,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV publique allemande avec contenus gratuits.',
         url: 'https://www.zdf.de/live-tv',
         icon: '/icons/services/zdf.svg',
-        availability: ['global', 'europe', 'northern_europe', 'germany'],
+        availability: ['germany'],
         tags: ['Gratuit', 'Deutschland'],
       },
     ],
@@ -558,7 +579,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Replay et direct de l’audiovisuel public français.',
         url: 'https://www.france.tv',
         icon: '/icons/services/francetv-europe.svg',
-        availability: ['global', 'europe', 'western_europe', 'france'],
+        availability: ['france'],
         tags: ['Replay', 'Direct', 'France'],
       },
       {
@@ -567,7 +588,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Programmes BBC avec interface cinématographique.',
         url: 'https://www.bbc.co.uk/iplayer',
         icon: '/icons/services/bbc-iplayer.svg',
-        availability: ['global', 'europe', 'anglophone', 'uk'],
+        availability: ['uk'],
         tags: ['Live', 'News'],
       },
       {
@@ -576,7 +597,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Plateforme allemande avec contenus culturels.',
         url: 'https://www.ardmediathek.de/live',
         icon: '/icons/services/ard-mediathek.svg',
-        availability: ['global', 'europe', 'northern_europe', 'germany'],
+        availability: ['germany'],
       },
       {
         id: '6play',
@@ -584,7 +605,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Replay des chaînes du groupe M6 en direct et replay.',
         url: 'https://www.6play.fr/',
         icon: '/icons/services/6play.svg',
-        availability: ['europe'],
+        availability: ['france'],
         tags: ['Gratuit', 'Replay'],
       },
       {
@@ -593,7 +614,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Programmes TF1 en direct et replay gratuit.',
         url: 'https://www.tf1.fr/',
         icon: '/icons/services/tf1plus.svg',
-        availability: ['europe'],
+        availability: ['france'],
         tags: ['Gratuit', 'Direct'],
       },
       {
@@ -602,7 +623,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Info en continu en direct.',
         url: 'https://www.bfmtv.com/mediaplayer/live-video/',
         icon: '/icons/services/bfmtv.svg',
-        availability: ['europe'],
+        availability: ['france'],
         tags: ['News', 'Live'],
       },
       {
@@ -611,7 +632,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Chaîne d\'info du groupe TF1 en direct.',
         url: 'https://www.lci.fr/direct/',
         icon: '/icons/services/lci.svg',
-        availability: ['europe'],
+        availability: ['france'],
         tags: ['News', 'Live'],
       },
       {
@@ -620,7 +641,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Info en continu en direct.',
         url: 'https://www.cnews.fr/le-direct',
         icon: '/icons/services/cnews.svg',
-        availability: ['europe'],
+        availability: ['france'],
         tags: ['News', 'Live'],
       },
       {
@@ -629,7 +650,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV publique belge francophone avec replay.',
         url: 'https://auvio.rtbf.be/',
         icon: '/icons/services/rtbf.svg',
-        availability: ['europe'],
+        availability: ['belgium'],
         tags: ['Belgique', 'Gratuit'],
       },
       {
@@ -638,7 +659,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Streaming belge RTL avec séries, films et direct.',
         url: 'https://www.rtlplay.be/',
         icon: '/icons/services/rtlplay.svg',
-        availability: ['europe'],
+        availability: ['belgium'],
         tags: ['Belgique', 'Gratuit'],
       },
       {
@@ -647,7 +668,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Streaming TV belge avec de nombreuses chaînes.',
         url: 'https://www.pickx.be/fr',
         icon: '/icons/services/pickx.svg',
-        availability: ['europe'],
+        availability: ['belgium'],
         tags: ['Belgique'],
       },
       {
@@ -656,7 +677,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV publique suisse romande avec replay.',
         url: 'https://www.rts.ch/play/tv',
         icon: '/icons/services/rtsplay.svg',
-        availability: ['europe'],
+        availability: ['switzerland'],
         tags: ['Suisse', 'Gratuit'],
       },
       {
@@ -665,7 +686,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Streaming suisse avec contenus locaux.',
         url: 'https://www.playsuisse.ch/fr',
         icon: '/icons/services/playsuisse.svg',
-        availability: ['europe'],
+        availability: ['switzerland'],
         tags: ['Suisse'],
       },
       {
@@ -674,7 +695,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Streaming sport en direct et à la demande.',
         url: 'https://www.dazn.com/fr-FR',
         icon: '/icons/services/dazn-europe.svg',
-        availability: ['europe'],
+        availability: ['france'],
         tags: ['Sport', 'Live'],
       },
       {
@@ -692,7 +713,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV en direct et replay de Deutsche Telekom, accessible sur navigateur.',
         url: 'https://web.magentatv.de/',
         icon: '/icons/services/magenta-tv.svg',
-        availability: ['europe', 'germany'],
+        availability: ['germany'],
         tags: ['Allemagne', 'Opérateur', 'TV'],
       },
       {
@@ -701,7 +722,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV IP et replay en Allemagne, 100% via Internet.',
         url: 'https://www.waipu.tv/',
         icon: '/icons/services/waipu-tv.svg',
-        availability: ['europe', 'germany'],
+        availability: ['germany'],
         tags: ['Allemagne', 'IPTV', 'TV'],
       },
       {
@@ -710,7 +731,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Plateforme pan-europ\u00e9enne de TV en direct sur navigateur.',
         url: 'https://zattoo.com/de/en',
         icon: '/icons/services/zattoo-eu.svg',
-        availability: ['europe'],
+        availability: ['germany', 'switzerland', 'austria', 'spain'],
         tags: ['IPTV', 'Live', 'Europe'],
       },
       {
@@ -719,7 +740,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Streaming et live TV en Allemagne (ProSiebenSat.1).',
         url: 'https://www.joyn.de/',
         icon: '/icons/services/joyn-de.svg',
-        availability: ['europe', 'germany'],
+        availability: ['germany'],
         tags: ['Allemagne', 'Live', 'Replay'],
       },
       {
@@ -728,7 +749,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV en direct et replay Vodafone, accessible aussi via navigateur.',
         url: 'https://www.vodafone.de/digital-fernsehen/online-tv',
         icon: '/icons/services/vodafone-gigatv-de.svg',
-        availability: ['europe', 'germany'],
+        availability: ['germany'],
         tags: ['Allemagne', 'Opérateur', 'TV'],
       },
       {
@@ -737,7 +758,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Plateforme TV payante de Telef\u00f3nica (Espagne) avec web player.',
         url: 'https://ver.movistarplus.es/',
         icon: '/icons/services/movistar-plus-es.svg',
-        availability: ['europe', 'spain'],
+        availability: ['spain'],
         tags: ['Espagne', 'Opérateur', 'TV'],
       },
       {
@@ -746,7 +767,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV en ligne de Vodafone Espagne, live + replay.',
         url: 'https://tv.vodafone.es/',
         icon: '/icons/services/vodafone-tv-es.svg',
-        availability: ['europe', 'spain'],
+        availability: ['spain'],
         tags: ['Espagne', 'Opérateur', 'TV'],
       },
       {
@@ -755,7 +776,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV et VOD d\'Orange Espagne, accessible sur PC et mobile.',
         url: 'https://orangetv.orange.es/',
         icon: '/icons/services/orange-tv-es.svg',
-        availability: ['europe', 'spain'],
+        availability: ['spain'],
         tags: ['Espagne', 'Orange', 'TV'],
       },
       {
@@ -764,7 +785,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Plateforme de streaming d\'Atresmedia (Antena 3, La Sexta...).',
         url: 'https://www.atresplayer.com/',
         icon: '/icons/services/atresplayer.svg',
-        availability: ['europe', 'spain'],
+        availability: ['spain'],
         tags: ['Espagne', 'Replay'],
       },
       {
@@ -773,7 +794,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Plateforme de Mediaset Espa\u00f1a avec live et replay.',
         url: 'https://www.mitele.es/',
         icon: '/icons/services/mitele-es.svg',
-        availability: ['europe', 'spain'],
+        availability: ['spain'],
         tags: ['Espagne', 'Replay'],
       },
       {
@@ -782,7 +803,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Service de streaming de l\'opérateur TIM en Italie.',
         url: 'https://www.timvision.it/',
         icon: '/icons/services/timvision.svg',
-        availability: ['europe', 'italy'],
+        availability: ['italy'],
         tags: ['Italie', 'Opérateur', 'TV'],
       },
       {
@@ -791,7 +812,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Plateforme de streaming gratuite de la Rai (Italie).',
         url: 'https://www.raiplay.it/',
         icon: '/icons/services/raiplay.svg',
-        availability: ['europe', 'italy'],
+        availability: ['italy'],
         tags: ['Italie', 'Public', 'Gratuit'],
       },
       {
@@ -800,7 +821,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Plateforme streaming de Mediaset en Italie.',
         url: 'https://mediasetinfinity.mediaset.it/',
         icon: '/icons/services/mediaset-infinity-it.svg',
-        availability: ['europe', 'italy'],
+        availability: ['italy'],
         tags: ['Italie', 'VOD', 'Replay'],
       },
       {
@@ -809,7 +830,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Service de streaming TV de Sky pour abonnés au Royaume-Uni et en Irlande.',
         url: 'https://www.sky.com/watch/sky-go',
         icon: '/icons/services/sky-go-uk.svg',
-        availability: ['europe', 'uk'],
+        availability: ['uk'],
         tags: ['UK', 'Opérateur', 'TV'],
       },
       {
@@ -818,7 +839,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Service OTT de Sky sans engagement (s\u00e9ries, cin\u00e9, sport).',
         url: 'https://www.nowtv.com/',
         icon: '/icons/services/now-tv-uk.svg',
-        availability: ['europe', 'uk'],
+        availability: ['uk'],
         tags: ['UK', 'OTT', 'VOD'],
       },
       {
@@ -827,7 +848,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'TV et VOD en ligne pour clients Virgin Media.',
         url: 'https://virgintvgo.virginmedia.com/en.html',
         icon: '/icons/services/virgin-tv-go-uk.svg',
-        availability: ['europe', 'uk'],
+        availability: ['uk'],
         tags: ['UK', 'Opérateur', 'TV'],
       },
       {
@@ -836,7 +857,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Plateforme française leader de l\'anime légal en streaming.',
         url: 'https://animedigitalnetwork.fr',
         icon: '/icons/services/adn.svg',
-        availability: ['europe'],
+        availability: ['france', 'belgium', 'switzerland'],
         tags: ['Anime', 'France', 'Premium'],
       },
       {
@@ -845,7 +866,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Anime en streaming légal pour l\'Europe francophone.',
         url: 'https://www.wakanim.tv',
         icon: '/icons/services/wakanim.svg',
-        availability: ['europe'],
+        availability: ['france', 'belgium', 'switzerland'],
         tags: ['Anime', 'France', 'VF/VOSTFR'],
       },
       {
@@ -854,7 +875,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Plateforme de rattrapage de la télévision publique néerlandaise.',
         url: 'https://www.npostart.nl/',
         icon: '/icons/services/npo-start.svg',
-        availability: ['europe', 'northern_europe'],
+        availability: ['netherlands'],
         tags: ['Pays-Bas', 'Public', 'Replay'],
       },
       {
@@ -863,7 +884,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Service OTT néerlandais regroupant NPO, RTL et SBS.',
         url: 'https://www.nlziet.nl/',
         icon: '/icons/services/nlziet.svg',
-        availability: ['europe', 'northern_europe'],
+        availability: ['netherlands'],
         tags: ['Pays-Bas', 'OTT', 'TV'],
       },
       {
@@ -872,7 +893,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Service de streaming de la télévision publique suédoise.',
         url: 'https://www.svtplay.se/',
         icon: '/icons/services/svt-play.svg',
-        availability: ['europe', 'northern_europe'],
+        availability: ['sweden'],
         tags: ['Suède', 'Public', 'Gratuit'],
       },
       {
@@ -881,7 +902,7 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Streaming de la télévision publique danoise (DR).',
         url: 'https://www.dr.dk/drtv/',
         icon: '/icons/services/dr-tv.svg',
-        availability: ['europe', 'northern_europe'],
+        availability: ['denmark'],
         tags: ['Danemark', 'Public', 'Gratuit'],
       },
       {
@@ -890,17 +911,8 @@ export const videoCategories: PlatformCategory[] = [
         description: 'Plateforme de streaming de la télévision publique norvégienne.',
         url: 'https://tv.nrk.no/',
         icon: '/icons/services/nrk-tv.svg',
-        availability: ['europe', 'northern_europe'],
+        availability: ['norway'],
         tags: ['Norvège', 'Public', 'Gratuit'],
-      },
-      {
-        id: 'yle-areena',
-        name: '\uD83C\uDDEB\uD83C\uDDEE Yle Areena',
-        description: 'Service de streaming de la télévision publique finlandaise.',
-        url: 'https://areena.yle.fi/',
-        icon: '/icons/services/yle-areena.svg',
-        availability: ['europe', 'northern_europe'],
-        tags: ['Finlande', 'Public', 'Gratuit'],
       },
       {
         id: 'stan',
@@ -1272,7 +1284,7 @@ export const musicCategories: PlatformCategory[] = [
         description: 'Radios, podcasts et mix de la BBC.',
         url: 'https://www.bbc.co.uk/sounds',
         icon: '/icons/services/bbc-sounds.svg',
-        availability: ['europe', 'anglophone', 'uk'],
+        availability: ['uk'],
         tags: ['Radio', 'Podcasts'],
       },
       {
@@ -1281,7 +1293,7 @@ export const musicCategories: PlatformCategory[] = [
         description: 'Accès web aux principales stations Radio France (France Inter, France Info...).',
         url: 'https://www.radiofrance.fr/',
         icon: '/icons/services/radio-france.svg',
-        availability: ['europe', 'france'],
+        availability: ['france'],
         tags: ['Radio', 'France', 'Public'],
       },
       {
@@ -1670,7 +1682,7 @@ export const chargingCategories: PlatformCategory[] = [
         description: 'État du trafic routier en France en temps réel.',
         url: 'https://www.infotrafic.com',
         icon: '/icons/services/infotrafic.svg',
-        availability: ['global', 'europe', 'western_europe', 'france'],
+        availability: ['france'],
         tags: ['Trafic', 'France'],
       },
     ],
@@ -1718,7 +1730,7 @@ export const otherServicesCategories: PlatformCategory[] = [
         description: 'Vérifie si ce navigateur peut lire myCANAL, Netflix et les autres services protégés.',
         url: '/drm-test.html',
         icon: '/icons/services/xpeng-drm-test.svg',
-        availability: ['global', 'europe', 'western_europe', 'france'],
+        availability: ['global'],
         tags: ['XPENG', 'Outil', 'Interne'],
       },
       {
@@ -1900,7 +1912,7 @@ export const otherServicesCategories: PlatformCategory[] = [
         description: 'Chaîne YouTube officielle XPENG pour l\'Europe.',
         url: 'https://www.youtube.com/@XPENGEurope',
         icon: '/icons/services/xpeng-europe.svg',
-        availability: ['global', 'europe'],
+        availability: ['europe'],
         tags: ['Officiel', 'Europe'],
       },
       {
@@ -1909,7 +1921,7 @@ export const otherServicesCategories: PlatformCategory[] = [
         description: 'Communauté et actualités XPENG France.',
         url: 'https://www.youtube.com/@xpengfrance',
         icon: '/icons/services/xpeng-france.svg',
-        availability: ['europe'],
+        availability: ['france'],
         tags: ['France', 'Communauté'],
       },
       {
@@ -1945,7 +1957,7 @@ export const otherServicesCategories: PlatformCategory[] = [
         description: 'Boutiques et accessoires pour XPENG en France.',
         url: 'https://www.greendrive-accessories.com/fr/',
         icon: '/icons/services/xpeng-accessories-fr.svg',
-        availability: ['global', 'europe', 'western_europe', 'france'],
+        availability: ['france'],
         tags: ['Accessoires', 'Shopping'],
       },
       {
@@ -1954,7 +1966,7 @@ export const otherServicesCategories: PlatformCategory[] = [
         description: 'Serveur Discord de la communauté XPENG France.',
         url: 'https://discord.gg/xpengfrance',
         icon: '/icons/services/xpeng-discord.svg',
-        availability: ['global', 'europe', 'western_europe', 'france'],
+        availability: ['france'],
         tags: ['Discord', 'Communauté'],
       },
     ],
