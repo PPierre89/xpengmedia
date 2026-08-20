@@ -9,6 +9,10 @@ lerna-debug.log*
 
 node_modules
 dist
+
+# Données persistantes du serveur en exécution locale (DATA_DIR par défaut).
+# En conteneur, c'est un volume ; en local, ça ne doit jamais être commité.
+data/
 dist-ssr
 *.local
 

@@ -74,9 +74,20 @@ Pour les marques absentes de Simple Icons — essentiellement les diffuseurs et
 opérateurs européens, dont le logo *est* justement un sigle : ARD, TF1+, RTBF,
 SVT, NRK, NPO, BFM, LCI, Rai…
 
-Le corps de la police est calculé à partir de la longueur du texte, et
-`textLength` fige la largeur : le rendu est identique quelle que soit la police
-disponible sur l'écran embarqué.
+Le corps de la police est calculé à partir de largeurs de caractères
+**mesurées** (`scripts/logos/char-widths.mjs`), et non d'une moyenne. C'est
+important : les vraies largeurs vont de 0,343 em (« i », « l ») à 1,103 em
+(« W »). Avec une moyenne unique, la largeur estimée se trompait jusqu'à 24 %,
+et comme `textLength` fige la largeur finale, l'écart était rattrapé en
+déformant les glyphes — « CANAL+ » sortait comprimé à 81 %, « xfinity » étiré à
+122 %.
+
+Avec les largeurs mesurées, `textLength` ne corrige plus qu'un résidu (0,5 % en
+moyenne, 5,6 % au pire) et ne déforme plus rien. Il reste présent pour figer le
+rendu quelle que soit la police réellement disponible sur l'écran embarqué.
+
+Pour régénérer la table si la pile de polices change :
+`node scripts/measure-char-widths.mjs` (nécessite `playwright-core`).
 
 ### `{ glyph: 'tv', hex: '00AEEF' }` — pictogramme
 

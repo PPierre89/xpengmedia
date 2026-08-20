@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 
 import * as simpleIcons from 'simple-icons';
 
+import { measureEm } from './logos/char-widths.mjs';
 import { glyphs } from './logos/glyphs.mjs';
 import { logoMap } from './logos/logo-map.mjs';
 
@@ -84,10 +85,23 @@ function renderPaths(paths, viewBoxSize, drawSize, fill) {
 }
 
 function renderText(text, fill) {
-  const usable = 52;
-  const widthRatio = 0.62; // largeur moyenne d'un caractère gras, en em
-  const fontSize = clamp(usable / (widthRatio * text.length), 10, 32);
-  const textLength = Math.min(usable, text.length * fontSize * widthRatio);
+  // 50 sur 64 : la tuile va de 2 à 62, il reste donc 7 unités de marge de
+  // chaque côté. En dessous, les logotypes longs touchaient les bords arrondis.
+  const usable = 50;
+
+  // La largeur est calculée caractère par caractère à partir de largeurs
+  // mesurées (voir char-widths.mjs), et non d'une moyenne. Une moyenne unique
+  // se trompe de 24 % sur « CNEWS » comme sur « xfinity » : `textLength`
+  // rattrapait alors l'écart en déformant les glyphes.
+  const em = measureEm(text);
+  const fontSize = clamp(usable / em, 9, 32);
+
+  // Largeur naturelle du texte à cette taille : `textLength` ne fige donc plus
+  // qu'une valeur que la police atteint déjà d'elle-même. Il reste utile pour
+  // que le rendu soit identique sur un écran embarqué dont les polices
+  // diffèrent, mais il ne comprime ni n'étire plus rien ici.
+  const textLength = em * fontSize;
+
   // Ligne de base calculée à la main : `dominant-baseline` n'est pas rendu de
   // façon identique par tous les moteurs embarqués.
   const baseline = 32 + fontSize * 0.35;
