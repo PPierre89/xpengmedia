@@ -14,7 +14,7 @@
 
 ---
 
-### 199 services • 12 langues • 20 régions • Mode clair/sombre • 100% responsive
+### 200 services • 12 langues • 20 régions • Mode clair/sombre • 100% responsive
 
 ![XPENG Media Hub](https://img.shields.io/badge/Status-Production-brightgreen?style=flat-square)
 ![Version](https://img.shields.io/badge/Version-2.6.0-blue?style=flat-square)
@@ -48,12 +48,12 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 - **Filtrage strict** : une chaîne française n'apparaît pas quand la région est réglée sur l'Allemagne
 - **Suggestions de régions** basées sur la proximité géographique et linguistique
 
-### 📺 **199 services organisés**
+### 📺 **200 services organisés**
 - **🎬 Vidéo** : 117 services (Netflix, Disney+, Prime Video…)
 - **🎵 Musique** : 20 services (Spotify, Apple Music, Deezer…)
 - **🎮 Jeux** : 21 services (GeForce NOW, Xbox Cloud Gaming…)
 - **🔋 Recharge** : 13 services (ABRP, Chargemap, PlugShare…)
-- **🌐 Services web & outils** : 28 services (Gmail, notes, calculatrice…)
+- **🌐 Services web & outils** : 29 services (Gmail, notes, calculatrice, moteur virtuel…)
 
 ### 🎨 **Design XPENG**
 - **Thème clair/sombre** avec transition fluide
@@ -68,6 +68,12 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 - **Zéro requête tierce** : logos et police embarqués, servis par votre serveur
 - Flux IPTV et détection du proxy local volontairement exclus du cache
 - Nécessite un accès HTTPS ([détails](DEPLOY-NAS-UGREEN.md#-installer-lapp-dans-la-voiture-pwa))
+
+### 🔊 **Engine Sound — moteur virtuel**
+- **17 motorisations** qui **suivent la vitesse GPS** : V8 croisé, V8 plat, V12, V10, W16, F1 V10, rotatif, flat-6, 5 cylindres, V-twin, diesel…
+- **Modèle physique** : chaque cylindre allume à son angle réel, l'impulsion traverse une ligne d'échappement résonante
+- **Import de vos enregistrements** par régime, comme les banques de sons des simulateurs (stockés dans le navigateur)
+- Boîte de vitesses simulée, turbo, pétarades ; aucun service externe ; mode **Démo** à l'arrêt ([détails](docs/ENGINE-SOUND.md))
 
 ### 📱 **Responsive & Optimisé**
 - **Portrait** : 5 colonnes, interface compacte
@@ -191,7 +197,7 @@ région. Toute clé manquante retombe sur l'anglais, jamais sur un libellé vide
 
 <div align="center">
 
-### 199 services • 5 catégories • Organisés par région
+### 200 services • 5 catégories • Organisés par région
 
 </div>
 
@@ -379,12 +385,12 @@ région. Toute clé manquante retombe sur l'anglais, jamais sur un libellé vide
 
 | Catégorie | Nombre de services | % du total |
 |-----------|-------------------|------------|
-| 🎬 **Vidéo** | 117 | 59 % |
+| 🎬 **Vidéo** | 117 | 58 % |
 | 🎵 **Musique** | 20 | 10 % |
 | 🎮 **Jeux** | 21 | 11 % |
 | 🔋 **Recharge** | 13 | 6 % |
-| 🌐 **Web** | 28 | 14 % |
-| **TOTAL** | **199** | **100 %** |
+| 🌐 **Web** | 29 | 15 % |
+| **TOTAL** | **200** | **100 %** |
 
 </div>
 
@@ -506,7 +512,7 @@ xpengmedia/
 │   ├── context/             # React Context (Favorites, Locale, Theme, Sync)
 │   ├── types/               # Types partagés (FavoriteItem…)
 │   ├── utils/               # Filtrage par région, moteur de synchronisation, API serveur
-│   ├── data/                # platforms.ts (199 services), regionsMetadata.ts (20 régions)
+│   ├── data/                # platforms.ts (200 services), regionsMetadata.ts (20 régions)
 │   ├── hooks/               # Hooks (favoris intelligents, état du véhicule)
 │   ├── pages/               # Pages de l'application
 │   ├── App.tsx

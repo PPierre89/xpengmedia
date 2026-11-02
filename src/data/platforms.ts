@@ -1778,6 +1778,15 @@ export const otherServicesCategories: PlatformCategory[] = [
         availability: ['global', 'asia', 'china'],
         tags: ['XPENG', 'Trajet', 'Interne'],
       },
+      {
+        id: 'xpeng-engine-sound',
+        name: 'XPENG Engine Sound',
+        description: '17 moteurs thermiques virtuels (V8, V12, F1, rotatif…) synchronisés sur la vitesse GPS, ou vos propres enregistrements.',
+        url: '/engine-sound.html',
+        icon: '/icons/services/xpeng-engine-sound.svg',
+        availability: ['global', 'asia', 'china'],
+        tags: ['XPENG', 'Son', 'Interne'],
+      },
     ],
   },
   {

@@ -219,6 +219,7 @@ export const logoMap = {
   'xpeng-media-guide': { glyph: 'book', hex: XPENG },
   'xpeng-dashcam-viewer': { glyph: 'camera', hex: XPENG },
   'xpeng-trip-planner': { glyph: 'map', hex: XPENG },
+  'xpeng-engine-sound': { glyph: 'speaker', hex: XPENG },
 
   // --------------------------------------------------- Documentation XPENG ---
   'xpeng-g3i-manual': { text: 'G3i', hex: XPENG },
