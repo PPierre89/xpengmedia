@@ -160,6 +160,7 @@
     }
     .chip:disabled { opacity: 0.4; cursor: default; }
     .segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .views { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .row { display: flex; align-items: center; gap: 12px; }
     input[type="range"] { flex: 1; accent-color: var(--accent); height: 36px; }
     .vol-val { width: 44px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
@@ -261,6 +262,11 @@
       </div>
 
       <div>
+        <div class="section-title">Point d'écoute</div>
+        <div class="views" id="views" role="group" aria-label="Point d'écoute"></div>
+      </div>
+
+      <div>
         <div class="section-title">Mes enregistrements</div>
         <p class="note">
           Comme les banques de sons des simulateurs : un fichier par régime, nommé
@@ -307,138 +313,196 @@
     // ===================================================================
     //  Motorisations
     // ===================================================================
-    // fire  : angles d'allumage en degrés de vilebrequin sur un cycle de 720°
-    //         (4 temps), dans l'ordre d'allumage.
-    // bank  : ligne d'échappement de chaque allumage (0 ou 1).
-    // pipes : longueur des deux lignes (m) — fixe la résonance du tube.
-    // lag   : retard (ms) par allumage, pour les collecteurs de longueurs
-    //         inégales (le « grondement » boxer).
-    // gears : km/h pour 1000 tr/min sur chaque rapport.
-    // Timbre : sharp (durée de l'impulsion, ms), noise (part de souffle),
-    //   rough (dispersion de combustion), muffler (coupure du silencieux, Hz),
-    //   reso (réflexion dans le tube, 0-0,9), intake, mech (distribution),
-    //   diesel (cliquetis), crackle (pétarades), turbo (0-1).
-    // level : correction de volume mesurée (EBU R128) pour que tous les
-    //         moteurs sortent à la même sonie perçue.
+    // Chaque moteur est décrit par sa mécanique (ce qui fixe le rythme) et par
+    // sa ligne d'admission / d'échappement (ce qui fixe le timbre).
+    //
+    // Mécanique
+    //   fire   : angles d'allumage en degrés de vilebrequin sur 720° (4 temps),
+    //            dans l'ordre d'allumage.
+    //   bank   : ligne d'échappement de chaque allumage (0 ou 1).
+    //   lag    : retard (ms) par allumage — collecteurs de longueurs inégales.
+    //   evo    : durée d'ouverture de la soupape d'échappement (°). L'impulsion
+    //            de vidange dure ce nombre de degrés : elle raccourcit quand le
+    //            régime monte, ce qui éclaircit naturellement le timbre.
+    //   rough  : dispersion de combustion d'un cycle à l'autre.
+    //   imb    : écart fixe de remplissage entre cylindres (0-0,15).
+    //   hdr    : dispersion des longueurs de tubes de collecteur (ms). Avec
+    //            imb, c'est ce qui fait le glouglou d'un V8 croisé : sans
+    //            asymétrie, ses deux bancs s'additionnent en un 8 cylindres
+    //            parfaitement régulier.
+    //   idle / redline / launch / gears : régimes et démultiplication
+    //            (km/h pour 1000 tr/min par rapport).
+    //
+    // Échappement
+    //   pipes  : longueur des collecteurs de chaque banc (m).
+    //   tail   : longueur de la ligne après le silencieux (m).
+    //   reso   : réflexion aux jonctions (0 = amorti, 0,7 = très résonant).
+    //   muffler: fréquence de coupure du silencieux (Hz), s'ouvre avec la charge.
+    //   drone / droneHz : résonance de caisse de la ligne (bourdonnement).
+    //   width  : écart stéréo entre les deux sorties.
+    //
+    // Admission et mécanique
+    //   intake / runnerHz / airbox : niveau, résonance des conduits, boîte à air.
+    //   mech   : distribution, chaîne, chocs dans les supports moteur.
+    //   diesel : cliquetis d'injection.
+    //   turbo  : 0-1 ; bov : 'valve' (pschitt) ou 'flutter' (tututu) ou 'none'.
+    //   blower : sifflement de compresseur volumétrique (0-1).
+    //   crackle: retours de flamme au lever de pied.
+    //   level  : correction de sonie mesurée (EBU R128).
     const even = (n, offset = 0) => Array.from({ length: n }, (_, i) => offset + (i * 720) / n);
     const alt = (n) => Array.from({ length: n }, (_, i) => i % 2);
     const one = (n) => Array(n).fill(0);
+    const CROSS = [0, 1, 1, 0, 1, 0, 0, 1]; // V8 croisé, ordre 1-8-4-3-6-5-7-2
 
-    const PROFILES = {
+    const DEFAULTS = {
+      evo: 230, rough: 0.05, imb: 0.05, hdr: 0.15, noise: 0.18, pipes: [1.2, 1.2], tail: 0.9, reso: 0.35,
+      muffler: 1800, drone: 0.15, droneHz: 70, width: 0.3,
+      intake: 0.6, runnerHz: 420, airbox: 1800, mech: 0.12, diesel: 0,
+      turbo: 0, bov: 'valve', blower: 0, crackle: 0.4, level: 1,
+    };
+
+    const RAW_PROFILES = {
       // ---------------------------------------------------------------- V8 ---
       v8x: {
         fam: 'V8', label: 'V8 croisé', sub: 'muscle car US',
-        // ordre 1-8-4-3-6-5-7-2 ; bancs gauche = cylindres impairs
-        fire: even(8), bank: [0, 1, 1, 0, 1, 0, 0, 1], pipes: [1.7, 1.85],
+        fire: even(8), bank: CROSS, pipes: [1.65, 1.8], tail: 1.3,
         idle: 700, redline: 6600, launch: 2200, gears: [8.5, 14, 20, 27, 35, 44],
-        sharp: 3.2, noise: 0.25, rough: 0.09, muffler: 1300, reso: 0.62, intake: 0.5, mech: 0.12, crackle: 0.65, turbo: 0, level: 1.04,
+        imb: 0.13, hdr: 0.9, evo: 255, rough: 0.09, noise: 0.16, reso: 0.4, muffler: 1150, drone: 0.4, droneHz: 72, width: 0.5,
+        intake: 0.5, runnerHz: 330, airbox: 1300, mech: 0.12, crackle: 0.55, level: 2.34,
+      },
+      v8sc: {
+        fam: 'V8', label: 'V8 compresseur', sub: 'muscle car moderne',
+        fire: even(8), bank: CROSS, pipes: [1.5, 1.6], tail: 1.2,
+        idle: 750, redline: 6500, launch: 2400, gears: [8.5, 14.5, 20.5, 27.5, 35, 43, 51, 58],
+        imb: 0.11, hdr: 0.8, evo: 245, rough: 0.07, noise: 0.18, reso: 0.38, muffler: 1500, drone: 0.3, droneHz: 68, width: 0.45,
+        intake: 0.55, runnerHz: 360, airbox: 1500, mech: 0.12, blower: 1, crackle: 0.75, level: 2.33,
       },
       v8f: {
         fam: 'V8', label: 'V8 plat', sub: 'supercar italienne',
-        fire: even(8), bank: alt(8), pipes: [1.1, 1.1],
+        fire: even(8), bank: alt(8), pipes: [0.95, 0.95], tail: 0.7,
         idle: 1000, redline: 9000, launch: 3200, gears: [7.5, 11.5, 15.5, 20, 24.5, 29, 34],
-        sharp: 1.8, noise: 0.3, rough: 0.04, muffler: 2600, reso: 0.55, intake: 0.8, mech: 0.14, crackle: 0.55, turbo: 0, level: 1.27,
+        imb: 0.03, hdr: 0.03, evo: 235, rough: 0.035, noise: 0.15, reso: 0.3, muffler: 3200, drone: 0.1, droneHz: 95, width: 0.25,
+        intake: 0.85, runnerHz: 520, airbox: 2600, mech: 0.14, crackle: 0.5, level: 2.42,
       },
       v8tt: {
         fam: 'V8', label: 'V8 biturbo', sub: 'GT allemande',
-        fire: even(8), bank: [0, 1, 1, 0, 1, 0, 0, 1], pipes: [1.4, 1.5],
+        fire: even(8), bank: CROSS, pipes: [1.35, 1.45], tail: 1.0,
         idle: 750, redline: 7200, launch: 2600, gears: [8, 13, 18.5, 24.5, 31, 38, 45],
-        sharp: 2.8, noise: 0.3, rough: 0.06, muffler: 1500, reso: 0.55, intake: 0.4, mech: 0.1, crackle: 0.75, turbo: 0.8, level: 1.32,
+        imb: 0.09, hdr: 0.7, evo: 245, rough: 0.06, noise: 0.18, reso: 0.35, muffler: 1550, drone: 0.25, droneHz: 74, width: 0.45,
+        intake: 0.4, runnerHz: 380, airbox: 1600, mech: 0.1, turbo: 0.8, bov: 'valve', crackle: 0.85, level: 2.49,
       },
       // ------------------------------------------------- Grand tourisme / exotique
       v12: {
         fam: 'V10 · V12 · W16', label: 'V12', sub: 'atmosphérique',
-        fire: even(12), bank: alt(12), pipes: [1.25, 1.25],
+        fire: even(12), bank: alt(12), pipes: [1.1, 1.1], tail: 0.8,
         idle: 900, redline: 8700, launch: 2800, gears: [8, 12.5, 17, 22, 27.5, 33, 39],
-        sharp: 1.6, noise: 0.22, rough: 0.03, muffler: 3000, reso: 0.5, intake: 0.9, mech: 0.12, crackle: 0.3, turbo: 0, level: 1.36,
+        imb: 0.03, hdr: 0.03, evo: 235, rough: 0.025, noise: 0.13, reso: 0.3, muffler: 3600, drone: 0.08, droneHz: 90, width: 0.3,
+        intake: 0.95, runnerHz: 600, airbox: 3200, mech: 0.12, crackle: 0.3, level: 2.19,
       },
       v10: {
         fam: 'V10 · V12 · W16', label: 'V10', sub: 'supercar',
         // V10 à 90° : intervalles alternés 54°/90°
-        fire: [0, 54, 144, 198, 288, 342, 432, 486, 576, 630], bank: alt(10), pipes: [1.15, 1.2],
+        fire: [0, 54, 144, 198, 288, 342, 432, 486, 576, 630], bank: alt(10), pipes: [1.05, 1.1], tail: 0.75,
         idle: 1000, redline: 8700, launch: 3000, gears: [7.8, 12, 16.5, 21, 26, 31, 36],
-        sharp: 1.7, noise: 0.28, rough: 0.04, muffler: 2700, reso: 0.55, intake: 0.85, mech: 0.12, crackle: 0.55, turbo: 0, level: 1.26,
+        imb: 0.05, hdr: 0.1, evo: 240, rough: 0.035, noise: 0.15, reso: 0.32, muffler: 3100, drone: 0.12, droneHz: 85, width: 0.3,
+        intake: 0.9, runnerHz: 560, airbox: 2900, mech: 0.12, crackle: 0.55, level: 2.56,
       },
       w16: {
         fam: 'V10 · V12 · W16', label: 'W16', sub: 'quadriturbo',
-        fire: even(16), bank: alt(16), pipes: [1.5, 1.55],
+        fire: even(16), bank: alt(16), pipes: [1.4, 1.45], tail: 1.3,
         idle: 800, redline: 6700, launch: 2600, gears: [9, 14.5, 20, 26, 33, 40, 48],
-        sharp: 2.4, noise: 0.35, rough: 0.03, muffler: 1400, reso: 0.5, intake: 0.5, mech: 0.08, crackle: 0.3, turbo: 1, level: 1.78,
+        evo: 235, rough: 0.025, noise: 0.2, reso: 0.3, muffler: 1300, drone: 0.25, droneHz: 60, width: 0.35,
+        intake: 0.45, runnerHz: 420, airbox: 1500, mech: 0.08, turbo: 1, bov: 'valve', crackle: 0.25, level: 3.0,
       },
       // ------------------------------------------------------------- Course ---
       f1v10: {
         fam: 'Course', label: 'F1 V10', sub: 'années 2000',
-        fire: even(10), bank: alt(10), pipes: [0.55, 0.55],
+        fire: even(10), bank: alt(10), pipes: [0.5, 0.5], tail: 0.25,
         idle: 4000, redline: 19000, launch: 9000, gears: [7.6, 9.8, 11.8, 13.6, 15.3, 16.9, 18.4],
-        sharp: 0.9, noise: 0.25, rough: 0.02, muffler: 7000, reso: 0.45, intake: 1, mech: 0.08, crackle: 0.35, turbo: 0, level: 1.2,
+        imb: 0.02, hdr: 0, evo: 285, rough: 0.015, noise: 0.1, reso: 0.28, muffler: 12000, drone: 0, width: 0.2,
+        intake: 1, runnerHz: 950, airbox: 6000, mech: 0.1, crackle: 0.25, level: 2.02,
       },
       rotary: {
         fam: 'Course', label: 'Rotatif', sub: '2 rotors',
         // chaque rotor allume une fois par tour d'arbre excentrique
-        fire: [0, 180, 360, 540], bank: [0, 1, 0, 1], pipes: [0.9, 0.95],
+        fire: [0, 180, 360, 540], bank: [0, 1, 0, 1], pipes: [0.8, 0.85], tail: 0.7,
         idle: 1000, redline: 9000, launch: 3500, gears: [8, 12.5, 17.5, 23, 29, 35],
-        sharp: 0.7, noise: 0.45, rough: 0.12, muffler: 2400, reso: 0.5, intake: 0.7, mech: 0.02, crackle: 0.9, turbo: 0, level: 1.64,
+        imb: 0.1, hdr: 0.3, evo: 210, rough: 0.12, noise: 0.3, reso: 0.35, muffler: 2800, drone: 0.15, droneHz: 80, width: 0.15,
+        intake: 0.7, runnerHz: 480, airbox: 2200, mech: 0.02, crackle: 0.95, level: 1.57,
       },
       // ------------------------------------------------------------ Sportives
       flat6: {
         fam: 'Sportives', label: 'Flat-6', sub: 'boxer atmo',
-        fire: even(6), bank: alt(6), pipes: [1.0, 1.0],
+        fire: even(6), bank: alt(6), pipes: [0.95, 0.95], tail: 0.6,
         idle: 900, redline: 9000, launch: 3000, gears: [7.5, 12, 16.5, 21, 26, 31, 36],
-        sharp: 1.9, noise: 0.28, rough: 0.05, muffler: 2400, reso: 0.55, intake: 0.9, mech: 0.18, crackle: 0.45, turbo: 0, level: 1.16,
+        imb: 0.03, hdr: 0.03, evo: 240, rough: 0.04, noise: 0.16, reso: 0.33, muffler: 2900, drone: 0.12, droneHz: 85, width: 0.3,
+        intake: 1, runnerHz: 520, airbox: 2700, mech: 0.2, crackle: 0.45, level: 1.95,
       },
       i6: {
         fam: 'Sportives', label: '6 en ligne', sub: 'propulsion',
-        fire: even(6), bank: one(6), pipes: [1.8, 1.8],
+        fire: even(6), bank: one(6), pipes: [1.6, 1.6], tail: 1.0,
         idle: 750, redline: 7400, launch: 2600, gears: [8.2, 13.5, 19.5, 25.5, 32, 38.5],
-        sharp: 2.2, noise: 0.25, rough: 0.03, muffler: 1900, reso: 0.6, intake: 0.6, mech: 0.12, crackle: 0.45, turbo: 0, level: 1.1,
+        evo: 235, rough: 0.025, noise: 0.15, reso: 0.35, muffler: 2100, drone: 0.2, droneHz: 75,
+        intake: 0.65, runnerHz: 450, airbox: 2100, mech: 0.12, crackle: 0.45, level: 1.05,
       },
       i5: {
         fam: 'Sportives', label: '5 cylindres', sub: 'turbo rallye',
-        fire: even(5), bank: one(5), pipes: [1.6, 1.6],
+        fire: even(5), bank: one(5), pipes: [1.5, 1.5], tail: 1.0,
         idle: 850, redline: 7000, launch: 3000, gears: [8.5, 14, 20, 26.5, 33, 39.5],
-        sharp: 2.4, noise: 0.32, rough: 0.06, muffler: 1700, reso: 0.62, intake: 0.6, mech: 0.12, crackle: 0.7, turbo: 0.9, level: 1.1,
+        imb: 0.06, hdr: 0.7, evo: 240, rough: 0.06, noise: 0.2, reso: 0.4, muffler: 1900, drone: 0.25, droneHz: 78,
+        intake: 0.6, runnerHz: 430, airbox: 1900, mech: 0.12, turbo: 0.9, bov: 'flutter', crackle: 0.75, level: 0.93,
       },
       v6tt: {
         fam: 'Sportives', label: 'V6 biturbo', sub: 'GT japonaise',
-        fire: even(6), bank: alt(6), pipes: [1.3, 1.35],
+        fire: even(6), bank: alt(6), pipes: [1.2, 1.25], tail: 0.95,
         idle: 800, redline: 7100, launch: 2600, gears: [8.2, 13.5, 19.5, 25.5, 32, 38.5],
-        sharp: 2.4, noise: 0.3, rough: 0.05, muffler: 1700, reso: 0.55, intake: 0.5, mech: 0.12, crackle: 0.55, turbo: 0.75, level: 1.23,
+        evo: 235, rough: 0.04, noise: 0.18, reso: 0.33, muffler: 1800, drone: 0.2, droneHz: 76, width: 0.35,
+        intake: 0.5, runnerHz: 440, airbox: 1800, mech: 0.12, turbo: 0.75, bov: 'valve', crackle: 0.55, level: 1.89,
       },
       // --------------------------------------------------------- Caractère ---
       boxer4: {
         fam: 'Caractère', label: 'Boxer 4', sub: 'collecteurs inégaux',
-        fire: even(4), bank: [0, 1, 0, 1], pipes: [1.4, 1.65], lag: [0, 1.6, 0.4, 2.2],
+        fire: even(4), bank: [0, 1, 0, 1], pipes: [1.3, 1.55], lag: [0, 1.6, 0.4, 2.2], tail: 1.0,
         idle: 800, redline: 7200, launch: 3000, gears: [8, 14, 20.5, 27, 33.5, 40],
-        sharp: 2.6, noise: 0.35, rough: 0.07, muffler: 1500, reso: 0.6, intake: 0.6, mech: 0.12, crackle: 0.55, turbo: 0.85, level: 1.0,
+        evo: 240, rough: 0.07, noise: 0.2, reso: 0.4, muffler: 1600, drone: 0.25, droneHz: 70, width: 0.15,
+        intake: 0.6, runnerHz: 420, airbox: 1800, mech: 0.12, turbo: 0.85, bov: 'flutter', crackle: 0.55, level: 1.19,
       },
       i4t: {
         fam: 'Caractère', label: '4 cylindres', sub: 'compacte turbo',
-        fire: even(4), bank: one(4), pipes: [1.9, 1.9],
+        fire: even(4), bank: one(4), pipes: [1.7, 1.7], tail: 1.1,
         idle: 800, redline: 7000, launch: 2800, gears: [8, 14, 20.5, 27, 33.5, 40],
-        sharp: 2.2, noise: 0.3, rough: 0.05, muffler: 1800, reso: 0.55, intake: 0.6, mech: 0.15, crackle: 0.5, turbo: 1, level: 1.02,
+        evo: 235, rough: 0.045, noise: 0.18, reso: 0.35, muffler: 1900, drone: 0.25, droneHz: 72,
+        intake: 0.6, runnerHz: 440, airbox: 2000, mech: 0.15, turbo: 1, bov: 'valve', crackle: 0.5, level: 0.62,
       },
       i3: {
         fam: 'Caractère', label: '3 cylindres', sub: 'petite sportive',
-        fire: even(3), bank: one(3), pipes: [1.7, 1.7],
+        fire: even(3), bank: one(3), pipes: [1.5, 1.5], tail: 1.0,
         idle: 850, redline: 6800, launch: 2800, gears: [8, 14, 20.5, 27, 33.5, 40],
-        sharp: 2.6, noise: 0.3, rough: 0.07, muffler: 1700, reso: 0.6, intake: 0.5, mech: 0.15, crackle: 0.45, turbo: 0.8, level: 0.87,
+        evo: 240, rough: 0.07, noise: 0.18, reso: 0.4, muffler: 1700, drone: 0.25, droneHz: 70,
+        intake: 0.55, runnerHz: 420, airbox: 1800, mech: 0.15, turbo: 0.8, bov: 'valve', crackle: 0.45, level: 0.63,
       },
       vtwin: {
         fam: 'Caractère', label: 'V-twin', sub: 'gros cube 45°',
         // allumages à 315° puis 405° : le battement caractéristique
-        fire: [0, 315], bank: [0, 0], pipes: [1.3, 1.3],
+        fire: [0, 315], bank: [0, 0], pipes: [1.2, 1.2], tail: 1.1,
         idle: 850, redline: 5600, launch: 2200, gears: [11, 17, 23, 29, 35, 41],
-        sharp: 4.5, noise: 0.3, rough: 0.14, muffler: 1100, reso: 0.65, intake: 0.4, mech: 0.25, crackle: 0.5, turbo: 0, level: 0.67,
+        imb: 0.1, hdr: 0, evo: 255, rough: 0.13, noise: 0.18, reso: 0.42, muffler: 1150, drone: 0.3, droneHz: 60, width: 0.1,
+        intake: 0.45, runnerHz: 300, airbox: 1200, mech: 0.28, crackle: 0.5, level: 0.31,
       },
       // ----------------------------------------------------------- Utilitaire
       diesel: {
         fam: 'Utilitaire', label: 'Diesel 6L', sub: 'poids lourd',
-        fire: even(6), bank: one(6), pipes: [3.2, 3.2],
+        fire: even(6), bank: one(6), pipes: [2.6, 2.6], tail: 2.2,
         idle: 600, redline: 2400, launch: 1100,
         gears: [3.2, 4.4, 6, 8, 10.8, 14.5, 19.5, 26, 34, 42, 50, 58],
-        sharp: 3.5, noise: 0.35, rough: 0.05, muffler: 900, reso: 0.6, intake: 0.5, mech: 0.1, diesel: 1, crackle: 0, turbo: 1, level: 1.51,
+        imb: 0.04, hdr: 0.4, evo: 220, rough: 0.04, noise: 0.22, reso: 0.4, muffler: 900, drone: 0.35, droneHz: 45,
+        intake: 0.5, runnerHz: 260, airbox: 900, mech: 0.15, diesel: 1, turbo: 1, bov: 'none', crackle: 0, level: 0.89,
       },
     };
+
+    const PROFILES = Object.fromEntries(
+      Object.entries(RAW_PROFILES).map(([id, p]) => [id, { ...DEFAULTS, ...p }])
+    );
 
     // Moteur « Mes enregistrements » : les régimes viennent des fichiers.
     const CUSTOM_ID = 'custom';
@@ -452,7 +516,7 @@
     //  Réglages
     // ===================================================================
     const STORE_KEY = 'xpeng-engine-sound:v1';
-    const settings = { profile: 'v8x', source: 'gps', volume: 60 };
+    const settings = { profile: 'v8x', source: 'gps', volume: 60, view: 'cabin' };
     try {
       Object.assign(settings, JSON.parse(localStorage.getItem(STORE_KEY) || '{}'));
     } catch { /* stockage indisponible : valeurs par défaut */ }
@@ -461,6 +525,7 @@
     if (RENAMED[settings.profile]) settings.profile = RENAMED[settings.profile];
     if (!PROFILES[settings.profile] && settings.profile !== CUSTOM_ID) settings.profile = 'v8x';
     if (settings.source !== 'gps' && settings.source !== 'demo') settings.source = 'gps';
+    if (!['cabin', 'cockpit', 'outside'].includes(settings.view)) settings.view = 'cabin';
     const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(settings)); } catch { /* ignoré */ } };
 
     // ===================================================================
@@ -473,7 +538,7 @@
       status: $('status'), gear: $('gear'), speed: $('speed'), rpmText: $('rpmText'),
       engineName: $('engineName'), arcBg: $('arcBg'), arcRed: $('arcRed'), arcVal: $('arcVal'),
       ticks: $('ticks'), importFiles: $('importFiles'), clearCustom: $('clearCustom'),
-      customStatus: $('customStatus'),
+      customStatus: $('customStatus'), views: $('views'),
     };
 
     // ===================================================================
@@ -515,6 +580,125 @@
     // que la page reste un fichier unique.
     const WORKLET_SRC = `
     const TAU = Math.PI * 2;
+    const SR = sampleRate;
+
+    // ---- forme de l'impulsion d'échappement (une table, lue à vitesse variable)
+    // Ouverture de soupape en deux temps, comme une mesure de pression en
+    // sortie de culasse : onde de vidange brève et violente (~10 % de
+    // l'ouverture), puis phase de refoulement par le piston, plus faible, et
+    // petit rebond de balayage vers 60 %. Une bosse trop douce noierait les
+    // harmoniques d'allumage dès que les impulsions se chevauchent.
+    const SHAPE_N = 1024;
+    const SHAPE = new Float32Array(SHAPE_N + 1);
+    (() => {
+      let max = 0;
+      for (let i = 0; i <= SHAPE_N; i++) {
+        const x = i / SHAPE_N;
+        const r = 0.025;
+        const rise = x < r ? 0.5 - 0.5 * Math.cos((Math.PI * x) / r) : 1;
+        const blow = x < r ? 1 : Math.exp(-(x - r) / 0.055);
+        const disp = 0.2 * (x < r ? x / r : 1) * (1 - Math.pow(x, 4));
+        const scav = 0.08 * Math.exp(-Math.pow((x - 0.6) / 0.06, 2));
+        SHAPE[i] = rise * blow * 0.8 + disp + scav;
+        if (SHAPE[i] > max) max = SHAPE[i];
+      }
+      for (let i = 0; i <= SHAPE_N; i++) SHAPE[i] /= max;
+      // moyenne nulle : une impulsion de pression ne transporte pas de continu
+      let mean = 0;
+      for (let i = 0; i <= SHAPE_N; i++) mean += SHAPE[i];
+      mean /= SHAPE_N + 1;
+      for (let i = 0; i <= SHAPE_N; i++) SHAPE[i] -= mean * (1 - Math.cos((TAU * i) / SHAPE_N)) / 2 * 2;
+    })();
+
+    // ---- tables à bande limitée (mipmaps), comme un synthé à table d'onde
+    // Lue sur peu d'échantillons à haut régime, la forme brute contiendrait
+    // des harmoniques au-delà de la moitié de la fréquence d'échantillonnage,
+    // qui se replieraient en raies descendantes métalliques (aliasing). On
+    // précalcule la forme filtrée à plusieurs largeurs de bande ; chaque
+    // impulsion lit celle dont le contenu reste sous ~18 kHz à sa durée.
+    const MIP_CAPS = [4, 8, 16, 32, 64, 128, 256, 512];
+    const MIPS = (() => {
+      const N = SHAPE_N;
+      const re = new Float64Array(N / 2 + 1), im = new Float64Array(N / 2 + 1);
+      const cosT = new Float64Array(N), sinT = new Float64Array(N);
+      for (let n = 0; n < N; n++) { cosT[n] = Math.cos((TAU * n) / N); sinT[n] = Math.sin((TAU * n) / N); }
+      for (let j = 0; j <= N / 2; j++) {
+        let r = 0, i = 0;
+        for (let n = 0; n < N; n++) { const k = (j * n) % N; r += SHAPE[n] * cosT[k]; i -= SHAPE[n] * sinT[k]; }
+        re[j] = r; im[j] = i;
+      }
+      return MIP_CAPS.map((cap) => {
+        const t = new Float32Array(N + 1);
+        const top = Math.min(cap, N / 2);
+        for (let n = 0; n < N; n++) {
+          let v = re[0] / N;
+          for (let j = 1; j <= top; j++) {
+            // atténuation progressive du dernier tiers : pas d'oscillation de Gibbs
+            const w = j > top * 0.65 ? 0.5 + 0.5 * Math.cos((Math.PI * (j - top * 0.65)) / (top * 0.35)) : 1;
+            const k = (j * n) % N;
+            v += (2 * w * (re[j] * cosT[k] - im[j] * sinT[k])) / N;
+          }
+          t[n] = v;
+        }
+        t[N] = t[0];
+        return t;
+      });
+    })();
+    function mipFor(lenSamples) {
+      const capMax = lenSamples * 0.38; // composante j → j·SR/len Hz
+      let m = 0;
+      while (m + 1 < MIP_CAPS.length && MIP_CAPS[m + 1] <= capMax) m++;
+      return m;
+    }
+
+    // ---- filtre d'état (topologie TPT, stable à toute fréquence)
+    class SVF {
+      constructor() { this.ic1 = 0; this.ic2 = 0; this.lp = 0; this.bp = 0; this.hp = 0; }
+      set(fc, q) {
+        const g = Math.tan((Math.PI * Math.min(Math.max(fc, 10), SR * 0.45)) / SR);
+        this.k = 1 / q;
+        this.a1 = 1 / (1 + g * (g + this.k));
+        this.a2 = g * this.a1;
+        this.a3 = g * this.a2;
+      }
+      tick(v0) {
+        const v3 = v0 - this.ic2;
+        const v1 = this.a1 * this.ic1 + this.a2 * v3;
+        const v2 = this.ic2 + this.a2 * this.ic1 + this.a3 * v3;
+        this.ic1 = 2 * v1 - this.ic1;
+        this.ic2 = 2 * v2 - this.ic2;
+        this.lp = v2; this.bp = v1; this.hp = v0 - this.k * v1 - v2;
+        return v2;
+      }
+    }
+
+    // ---- guide d'onde : tronçon de tube avec réflexion amortie à l'extrémité
+    class Pipe {
+      constructor(lengthM) {
+        this.D = Math.max(4, Math.round(((2 * lengthM) / 343) * SR));
+        this.buf = new Float32Array(this.D + 1);
+        this.i = 0;
+        this.lp = 0;
+      }
+      tick(x, refl, damp) {
+        const d = this.buf[this.i];
+        this.lp += damp * (d - this.lp);
+        const y = x + refl * this.lp;
+        this.buf[this.i] = y;
+        this.i = this.i === this.D ? 0 : this.i + 1;
+        return y;
+      }
+    }
+
+    // ---- passe-haut à un pôle (rayonnement en bout de tube, blocage du continu)
+    class HP1 {
+      constructor() { this.x = 0; this.y = 0; this.a = 0.99; }
+      set(fc) { this.a = Math.exp((-TAU * fc) / SR); }
+      tick(x) { const y = this.a * (this.y + x - this.x); this.x = x; this.y = y; return y; }
+    }
+
+    const MAX_PULSES = 96;
+
     class EngineProcessor extends AudioWorkletProcessor {
       static get parameterDescriptors() {
         return [
@@ -523,154 +707,278 @@
           { name: 'cut', defaultValue: 0, minValue: 0, maxValue: 1, automationRate: 'k-rate' },
         ];
       }
+
       constructor() {
         super();
         this.cfg = null;
-        this.phase = 0;
-        this.next = 0;
-        this.seed = 22222;
-        this.pending = [];
+        this.seed = 0x9e3779b9;
+        // réserve d'impulsions préallouée : aucune allocation dans la boucle audio
+        this.pT = new Float32Array(MAX_PULSES);
+        this.pLen = new Float32Array(MAX_PULSES);
+        this.pAmp = new Float32Array(MAX_PULSES);
+        this.pDst = new Int8Array(MAX_PULSES); // 0/1 = banc d'échappement, 2 = admission
+        this.pDelay = new Float32Array(MAX_PULSES);
+        this.pMip = new Uint8Array(MAX_PULSES);
+        this.pN = 0;
+        this.frac = 0;
         this.port.onmessage = (e) => this.configure(e.data);
       }
-      rand() { // xorshift, [0, 1)
-        let x = this.seed; x ^= x << 13; x ^= x >>> 17; x ^= x << 5; this.seed = x >>> 0;
+
+      rand() {
+        let x = this.seed;
+        x ^= x << 13; x ^= x >>> 17; x ^= x << 5;
+        this.seed = x >>> 0;
         return this.seed / 4294967296;
       }
+
       configure(c) {
-        const sr = sampleRate;
         this.cfg = c;
         this.n = c.fire.length;
-        this.decay = Math.exp(-1 / ((c.sharp / 1000) * sr));
-        this.popDecay = Math.exp(-1 / (0.012 * sr));
-        this.tickDecay = Math.exp(-1 / (0.0007 * sr));
-        this.bovDecay = Math.exp(-1 / (0.22 * sr));
-        this.lagSamples = (c.lag || []).map((ms) => Math.round((ms / 1000) * sr));
-        this.banks = c.pipes.map((len) => {
-          const D = Math.max(8, Math.round(((2 * len) / 343) * sr));
-          return { D, buf: new Float32Array(D + 1), idx: 0, env: 0, pop: 0, lp: 0, m1: 0, m2: 0, dc: 0, dcx: 0 };
-        });
-        this.tick = 0; this.tickPrev = 0;
-        this.boost = 0; this.bov = 0; this.bovF = 3000; this.tPh = 0; this.wasBoosted = false;
-        this.inLow = 0; this.inBand = 0; this.bLow = 0; this.bBand = 0;
-        this.gain = (0.55 / Math.sqrt(Math.max(2, this.n) / 4)) * (c.level || 1);
-        this.next = 0; this.phase = 0;
+        this.phase = 0;
+        this.next = 0;
+        this.pN = 0;
+        // écarts fixes par cylindre, tirés d'une graine propre au profil pour que
+        // chaque moteur garde « sa » personnalité d'une session à l'autre
+        let h = 2166136261;
+        for (const a of c.fire) h = Math.imul(h ^ Math.round(a * 10), 16777619);
+        this.seed = (h >>> 0) || 1;
+        this.cylGain = c.fire.map(() => 1 + (c.imb || 0) * (this.rand() * 2 - 1));
+        this.lagS = c.fire.map((_, i) => (((c.lag && c.lag[i]) || 0) + (c.hdr || 0) * this.rand()) / 1000 * SR);
+        this.dual = c.bank.some((b) => b === 1);
+        this.banks = [0, 1].map((b) => ({
+          col: new Pipe(c.pipes[b] || c.pipes[0]),
+          tail: new Pipe(c.tail * (b ? 1.04 : 1)),
+          muf: new SVF(),
+          drone: new SVF(),
+          rad: new SVF(),
+          dc: new HP1(),
+          wf: 0,
+          ex: 0,
+          pop: 0,
+        }));
+        this.runner = new SVF();
+        this.airbox = new SVF();
+        this.inDc = new HP1();
+        this.thump = new SVF();
+        this.valves = new SVF();
+        this.mechDc = new HP1();
+        this.bovF = new SVF();
+        this.inW = 0;
+        this.tick = 0;
+        this.thumpIn = 0;
+        this.boost = 0; this.wasBoosted = false; this.bov = 0; this.bovHz = 3500; this.flut = 0; this.flutPh = 0;
+        this.tPh = 0; this.bPh = 0; this.chPh = 0;
+        this.prevLoad = 0;
+        this.normEx = (0.32 / Math.sqrt(Math.max(2, this.n) / 4)) * (c.level || 1);
       }
-      fire(i, load, rpm, cut) {
+
+      addPulse(dst, len, amp, delay) {
+        if (this.pN >= MAX_PULSES) return;
+        const k = this.pN++;
+        // départ à la fraction d'échantillon près : sans cela, l'arrondi du
+        // calage de chaque cylindre se répète à chaque cycle et module le son
+        // à la fréquence du cycle (grondement parasite sous le fondamental)
+        this.pT[k] = this.frac; this.pLen[k] = Math.max(8, len); this.pAmp[k] = amp; this.pDst[k] = dst; this.pDelay[k] = delay;
+        this.pMip[k] = mipFor(this.pLen[k]);
+      }
+
+      fire(i, rpm, load, cut, frac) {
+        this.frac = frac;
         const c = this.cfg;
-        const idleish = 1 - Math.min(1, (rpm - c.idle) / (c.redline - c.idle) + load);
-        let a = 0.2 + 0.8 * Math.pow(load, 0.8);
-        a *= 1 + c.rough * (this.rand() * 2 - 1) * (0.5 + idleish);
-        if (cut) a *= 0.06;
+        const sPerDeg = SR / (rpm * 6);
+        const span = Math.min(1, Math.max(0, (rpm - c.idle) / (c.redline - c.idle)));
+        // pression de fin de détente : suit la charge ; dispersion plus forte
+        // au ralenti et à faible charge, comme une vraie combustion
+        let a = (0.14 + 0.86 * Math.pow(load, 0.75)) * this.cylGain[i];
+        a *= 1 + c.rough * (this.rand() * 2 - 1) * (1.4 - load - 0.4 * span);
+        // coupure d'allumage (passage de rapport, rupteur) : l'air circule
+        // toujours, les impulsions perdent leur énergie de combustion, et le
+        // mélange imbrûlé peut détoner dans la ligne — le « brap »
+        if (cut) {
+          a *= 0.45;
+          if (c.crackle && this.rand() < c.crackle * 0.18) this.banks[c.bank[i]].pop += 0.5 + this.rand();
+        }
         const bank = c.bank[i];
-        const lag = this.lagSamples[i] || 0;
-        if (lag > 0) this.pending.push({ bank, a, t: lag });
-        else this.banks[bank].env += a;
-        // distribution et cliquetis diesel
-        this.tick += c.mech * 0.35 + (c.diesel || 0) * (0.9 - 0.5 * load);
-        // retour de flamme au lever de pied
-        if (c.crackle && load < 0.06 && rpm > c.idle * 1.5 && this.rand() < c.crackle * 0.07) {
-          this.banks[bank].pop += 0.9 + this.rand() * 1.4;
+        const lag = this.lagS[i] || 0;
+        this.addPulse(bank, c.evo * sPerDeg, a, lag);
+        // admission : ouverture une demi-cycle plus tôt, débit suivant le papillon
+        const thr = 0.06 + 0.94 * Math.pow(load, 1.3);
+        this.addPulse(2, 240 * sPerDeg, thr * (0.85 + 0.3 * this.rand()), 360 * sPerDeg);
+        // choc de combustion transmis au bloc, cliquetis de distribution / injection
+        this.thumpIn += a * 0.6;
+        this.tick += c.mech * 0.5 + c.diesel * (1.1 - 0.6 * load);
+        // retour de flamme au lever de pied : mélange imbrûlé qui détone dans la ligne
+        if (c.crackle && load < 0.05 && rpm > c.idle * 1.4 && this.rand() < c.crackle * 0.11) {
+          const big = this.rand();
+          this.banks[bank].pop += (0.6 + 1.6 * big * big) * (0.4 + span);
         }
       }
+
       process(inputs, outputs, params) {
-        const out = outputs[0];
-        const L = out[0], R = out[1] || out[0];
+        const outEx = outputs[0], outIn = outputs[1], outMe = outputs[2];
+        const exL = outEx[0], exR = outEx[1] || outEx[0];
+        const inL = outIn[0], inR = outIn[1] || outIn[0];
+        const meL = outMe[0], meR = outMe[1] || outMe[0];
         const c = this.cfg;
-        if (!c) { L.fill(0); if (R !== L) R.fill(0); return true; }
-        const sr = sampleRate;
-        // les automatismes d'AudioParam peuvent déborder légèrement de la plage
-        // déclarée : une charge de -0,0003 suffit à produire NaN dans pow().
+        const N = exL.length;
+        if (!c) {
+          for (const ch of [...outEx, ...outIn, ...outMe]) ch.fill(0);
+          return true;
+        }
+        // les automatismes d'AudioParam peuvent déborder de leur plage
         const rpm = Math.max(0, params.rpm[0]);
         const load = Math.min(1, Math.max(0, params.load[0]));
         const cut = params.cut[0] > 0.5;
-        const dps = (rpm * 6) / sr; // degrés de vilebrequin par échantillon
-        const span = Math.max(0, Math.min(1, (rpm - c.idle) / (c.redline - c.idle)));
-        const muff = c.muffler * (0.7 + 0.6 * load + 0.4 * span);
-        const mc = 1 - Math.exp((-TAU * Math.min(muff, sr * 0.45)) / sr);
-        const bright = 0.06 + 0.12 * load;
-        const damp = 0.35 + 0.3 * span;
-        const fb = -c.reso;
-        // admission : bruit filtré en bande autour d'une fréquence liée au régime
-        const inF = 2 * Math.sin((Math.PI * Math.min(260 + rpm * 0.14, sr * 0.2)) / sr);
-        const inGain = c.intake * 0.06 * (0.15 + load) * (0.3 + span);
-        // turbo
-        const boostTarget = c.turbo ? load * Math.min(1, 0.2 + span * 1.1) : 0;
-        // montée en pression lente (inertie de la turbine), chute rapide
-        const spool = boostTarget > this.boost ? 1.4 : 5;
-        this.boost += (boostTarget - this.boost) * (1 - Math.exp((-spool * L.length) / sr));
-        if (this.boost > 0.45) this.wasBoosted = true;
-        if (this.wasBoosted && load < 0.08 && c.turbo) { this.bov = this.boost; this.bovF = 3800; this.wasBoosted = false; }
-        const whistleF = 1800 + 7000 * this.boost;
-        const whistleA = (c.turbo || 0) * 0.025 * this.boost * this.boost;
-        const n = this.n, ang = c.fire, banks = this.banks;
-        const g = this.gain;
+        const span = Math.min(1, Math.max(0, (rpm - c.idle) / (c.redline - c.idle)));
+        const fireHz = (rpm / 120) * this.n;
 
-        for (let s = 0; s < L.length; s++) {
-          // vilebrequin
+        // ---- réglages par bloc (128 échantillons)
+        const muffHz = c.muffler * (0.55 + 0.55 * load + 0.5 * span);
+        const damp = 0.55 + 0.3 * span;
+        for (let b = 0; b < 2; b++) {
+          const k = this.banks[b];
+          k.muf.set(muffHz, 0.75);
+          k.drone.set(c.droneHz, 4);
+          // un tube rayonne mal les fréquences dont la longueur d'onde le dépasse :
+          // passe-haut 2e ordre calé sous le fondamental d'allumage. Les
+          // demi-ordres (glouglou du V8 croisé) restent, la bouillie grave part.
+          k.rad.set(Math.max(25, Math.min(fireHz * 0.42, 160)), 0.6);
+          k.dc.set(18);
+        }
+        this.runner.set(c.runnerHz * (0.85 + 0.35 * span), 2.2);
+        this.airbox.set(c.airbox * (0.55 + 0.6 * load), 0.8);
+        this.inDc.set(60);
+        this.thump.set(90 + 60 * span, 1.6);
+        this.valves.set(3800, 1.2);
+        this.mechDc.set(30);
+
+        // turbo : la turbine prend de la pression avec inertie, la perd vite
+        const boostTarget = c.turbo ? load * Math.min(1, 0.15 + span * 1.15) : 0;
+        const spool = boostTarget > this.boost ? 1.3 : 4.5;
+        this.boost += (boostTarget - this.boost) * (1 - Math.exp((-spool * N) / SR));
+        if (this.boost > 0.4) this.wasBoosted = true;
+        if (this.wasBoosted && load < 0.08 && this.prevLoad - load > 0.002) {
+          if (c.bov === 'flutter') this.flut = this.boost;
+          else if (c.bov === 'valve') { this.bov = this.boost; this.bovHz = 4200; }
+          this.wasBoosted = false;
+        }
+        if (load > 0.2 && this.boost < 0.3) this.wasBoosted = false;
+        this.prevLoad = load;
+        const whistleHz = 1600 + 7500 * this.boost;
+        const whistleA = c.turbo * 0.02 * this.boost * this.boost;
+        const blowerHz = rpm * 0.175; // compresseur volumétrique entraîné par courroie
+        const blowerA = c.blower * 0.012 * (0.25 + load) * (0.2 + span);
+        const chainHz = (rpm / 60) * 23;
+        const chainA = c.mech * 0.0035 * (0.3 + span);
+        const intakeG = c.intake * (0.3 + 0.7 * span);
+        const w = c.width;
+
+        const dps = (rpm * 6) / SR;
+        const n = this.n, ang = c.fire;
+        const bk = this.banks;
+        for (let s = 0; s < N; s++) {
+          // ---- vilebrequin
           this.phase += dps;
           for (;;) {
             const a = this.next < n ? ang[this.next] : 720;
             if (this.phase < a) break;
-            if (this.next < n) { this.fire(this.next, load, rpm, cut); this.next++; }
+            // l'allumage a eu lieu (phase - a) degrés avant cet échantillon
+            if (this.next < n) { this.fire(this.next, rpm, load, cut, (this.phase - a) / dps); this.next++; }
             else { this.phase -= 720; this.next = 0; }
           }
-          // collecteurs de longueurs inégales
-          for (let p = this.pending.length - 1; p >= 0; p--) {
-            const ev = this.pending[p];
-            if (--ev.t <= 0) { banks[ev.bank].env += ev.a; this.pending.splice(p, 1); }
+
+          // ---- impulsions actives
+          let e0 = 0, e1 = 0, ein = 0;
+          for (let p = 0; p < this.pN; p++) {
+            if (this.pDelay[p] >= 1) { this.pDelay[p]--; continue; }
+            const x = (this.pT[p] / this.pLen[p]) * SHAPE_N;
+            const xi = x | 0;
+            const tb = MIPS[this.pMip[p]];
+            const v = (tb[xi] + (tb[xi + 1] - tb[xi]) * (x - xi)) * this.pAmp[p];
+            const d = this.pDst[p];
+            if (d === 0) e0 += v; else if (d === 1) e1 += v; else ein += v;
+            if (++this.pT[p] >= this.pLen[p]) {
+              const last = --this.pN;
+              this.pT[p] = this.pT[last]; this.pLen[p] = this.pLen[last]; this.pAmp[p] = this.pAmp[last];
+              this.pDst[p] = this.pDst[last]; this.pDelay[p] = this.pDelay[last]; this.pMip[p] = this.pMip[last];
+              p--;
+            }
           }
-          const w = this.rand() * 2 - 1;
-          let mix0 = 0, mix1 = 0;
-          for (let b = 0; b < banks.length; b++) {
-            const k = banks[b];
-            const w2 = this.rand() * 2 - 1;
-            // impulsion de pression : front raide, décroissance exponentielle
-            const exc = k.env * ((1 - c.noise) + c.noise * w2) + k.pop * w2;
-            k.env *= this.decay; k.pop *= this.popDecay;
-            // ligne d'échappement : guide d'onde avec pertes
-            const rd = k.idx; // tampon de longueur D+1 : lecture = écriture la plus ancienne
-            const delayed = k.buf[rd];
-            k.lp += damp * (delayed - k.lp);
-            const y = exc + fb * k.lp;
-            k.buf[k.idx] = y;
-            k.idx = k.idx + 1 > k.D ? 0 : k.idx + 1;
-            // silencieux : deux pôles + un peu de son direct
-            k.m1 += mc * (y - k.m1); k.m2 += mc * (k.m1 - k.m2);
-            let o = k.m2 + bright * y;
-            // coupe le continu
-            const hp = o - k.dcx + 0.995 * k.dc; k.dcx = o; k.dc = hp; o = hp;
-            if (b === 0) mix0 = o; else mix1 = o;
+
+          // ---- échappement, banc par banc
+          let o0 = 0, o1 = 0;
+          for (let b = 0; b < 2; b++) {
+            const k = bk[b];
+            const eb = b === 0 ? e0 : e1;
+            if (!this.dual && b === 1) break;
+            // turbulence : bruit rose-ish modulé par le débit
+            k.wf = 0.7 * k.wf + 0.3 * (this.rand() * 2 - 1);
+            const noiseAmt = c.noise * (1 + 1.2 * (1 - load));
+            let x = eb * (1 + noiseAmt * k.wf * 4.5);
+            // détonation : impulsion large, filtrée par toute la ligne
+            if (k.pop > 0.002) { x += k.pop * (0.6 + 0.4 * k.wf); k.pop *= 0.9965; }
+            const col = k.col.tick(x, -c.reso, damp);
+            const m = k.muf.tick(col);
+            k.drone.tick(m);
+            const t = k.tail.tick(m + k.drone.bp * c.drone * 0.5, -c.reso * 0.6, 0.45);
+            k.rad.tick(t);
+            let o = k.rad.hp + 0.04 * col;
+            o = k.dc.tick(o);
+            if (b === 0) o0 = o; else o1 = o;
           }
-          // admission
-          const inHigh = w - this.inLow - 0.7 * this.inBand;
-          this.inBand += inF * inHigh; this.inLow += inF * this.inBand;
-          const envSum = banks[0].env + (banks[1] ? banks[1].env : 0);
-          const intake = this.inBand * inGain * (0.4 + envSum);
-          // distribution / cliquetis : clic aigu
-          const tk = this.tick * w; const tickOut = tk - this.tickPrev; this.tickPrev = tk;
-          this.tick *= this.tickDecay;
-          // turbo : sifflement + décharge de la soupape
-          this.tPh += whistleF / sr; if (this.tPh > 1) this.tPh -= 1;
-          let turbo = Math.sin(TAU * this.tPh) * whistleA;
+          if (!this.dual) o1 = o0;
+          const ex = this.normEx;
+          exL[s] = ex * (o0 + (1 - w) * o1) / (2 - w);
+          exR[s] = ex * (o1 + (1 - w) * o0) / (2 - w);
+
+          // ---- admission
+          this.inW = 0.5 * this.inW + 0.5 * (this.rand() * 2 - 1);
+          const ix = ein * (0.35 + 0.65 * this.inW);
+          this.runner.tick(ix);
+          this.airbox.tick(ix);
+          let iv = (this.runner.bp * 0.45 + this.airbox.lp * 0.15) * intakeG;
+          // turbo : sifflement (fondamental + 2e harmonique), soupape, flutter
+          this.tPh += whistleHz / SR; if (this.tPh > 1) this.tPh -= 1;
+          iv += whistleA * (Math.sin(TAU * this.tPh) + 0.3 * Math.sin(2 * TAU * this.tPh));
           if (this.bov > 0.01) {
-            this.bovF *= 0.99996;
-            const bf = 2 * Math.sin((Math.PI * this.bovF) / sr);
-            const bh = w - this.bLow - 0.5 * this.bBand;
-            this.bBand += bf * bh; this.bLow += bf * this.bBand;
-            turbo += this.bBand * this.bov * 0.12 * c.turbo;
-            this.bov *= this.bovDecay;
+            this.bovHz *= 0.99997;
+            this.bovF.set(this.bovHz, 1.4);
+            this.bovF.tick(this.rand() * 2 - 1);
+            iv += this.bovF.bp * this.bov * 0.09 * c.turbo;
+            this.bov *= 0.99986;
           }
-          const common = intake + tickOut * 0.05 + turbo;
-          const l = g * (mix0 + 0.55 * mix1) + common;
-          const r = g * (mix1 + 0.55 * mix0) + common;
-          if (!Number.isFinite(l) || !Number.isFinite(r)) {
-            // garde-fou : une valeur invalide resterait piégée dans les boucles
-            // de rétroaction ; on repart d'un état propre plutôt que de se taire
+          if (this.flut > 0.01) {
+            this.flutPh += 17 / SR; if (this.flutPh > 1) this.flutPh -= 1;
+            const gate = this.flutPh < 0.35 ? Math.sin((Math.PI * this.flutPh) / 0.35) : 0;
+            this.bovF.set(1100, 1.2);
+            this.bovF.tick(this.rand() * 2 - 1);
+            iv += this.bovF.bp * gate * this.flut * 0.12 * c.turbo;
+            this.flut *= 0.99988;
+          }
+          // compresseur volumétrique : sifflement à engrenages
+          if (blowerA > 0) {
+            this.bPh += blowerHz / SR; if (this.bPh > 1) this.bPh -= 1;
+            iv += blowerA * (Math.sin(TAU * this.bPh) + 0.4 * Math.sin(2 * TAU * this.bPh) + 0.15 * Math.sin(3 * TAU * this.bPh));
+          }
+          iv = this.inDc.tick(iv);
+          inL[s] = iv; inR[s] = iv;
+
+          // ---- mécanique : chocs dans le bloc, soupapes, chaîne
+          this.thump.tick(this.thumpIn);
+          this.thumpIn *= 0.92;
+          const tk = this.tick * (this.rand() * 2 - 1);
+          this.tick *= 0.985;
+          this.valves.tick(tk);
+          this.chPh += chainHz / SR; if (this.chPh > 1) this.chPh -= 1;
+          let mv = this.thump.lp * 0.5 + this.valves.bp * 0.25 + chainA * Math.sin(TAU * this.chPh);
+          mv = this.mechDc.tick(mv);
+          meL[s] = mv; meR[s] = mv;
+
+          // ---- garde-fou : une valeur invalide resterait piégée dans les boucles
+          if (!Number.isFinite(exL[s] + exR[s] + iv + mv)) {
             this.configure(c);
-            L[s] = 0; R[s] = 0;
-            continue;
+            exL[s] = exR[s] = inL[s] = inR[s] = meL[s] = meR[s] = 0;
           }
-          L[s] = l; R[s] = r;
         }
         return true;
       }
@@ -680,20 +988,23 @@
 
     class PhysicalSynth {
       static loaded = new WeakSet();
-      static async create(ctx, out) {
+      static async create(ctx, mixer) {
         // un processeur ne s'enregistre qu'une fois par contexte audio
         if (!PhysicalSynth.loaded.has(ctx)) {
           const url = URL.createObjectURL(new Blob([WORKLET_SRC], { type: 'application/javascript' }));
           try { await ctx.audioWorklet.addModule(url); } finally { URL.revokeObjectURL(url); }
           PhysicalSynth.loaded.add(ctx);
         }
-        return new PhysicalSynth(ctx, out);
+        return new PhysicalSynth(ctx, mixer);
       }
-      constructor(ctx, out) {
+      constructor(ctx, mixer) {
         this.ctx = ctx;
-        this.handlesEffects = true;
-        this.node = new AudioWorkletNode(ctx, 'engine-processor', { numberOfOutputs: 1, outputChannelCount: [2] });
-        this.node.connect(out);
+        this.node = new AudioWorkletNode(ctx, 'engine-processor', {
+          numberOfInputs: 0, numberOfOutputs: 3, outputChannelCount: [2, 2, 2],
+        });
+        this.node.connect(mixer.ex, 0);
+        this.node.connect(mixer.intake, 1);
+        this.node.connect(mixer.mech, 2);
         this.p = {
           rpm: this.node.parameters.get('rpm'),
           load: this.node.parameters.get('load'),
@@ -701,17 +1012,15 @@
         };
       }
       setProfile(p) {
-        this.node.port.postMessage({
-          fire: p.fire, bank: p.bank, pipes: p.pipes, lag: p.lag || null,
-          idle: p.idle, redline: p.redline, sharp: p.sharp, noise: p.noise, rough: p.rough,
-          muffler: p.muffler, reso: p.reso, intake: p.intake, mech: p.mech, diesel: p.diesel || 0,
-          crackle: p.crackle || 0, turbo: p.turbo || 0, level: p.level || 1,
-        });
+        const keys = ['fire', 'bank', 'lag', 'evo', 'rough', 'noise', 'pipes', 'tail', 'reso', 'muffler',
+          'drone', 'droneHz', 'width', 'intake', 'runnerHz', 'airbox', 'mech', 'diesel', 'turbo', 'bov',
+          'blower', 'crackle', 'level', 'idle', 'redline'];
+        this.node.port.postMessage(Object.fromEntries(keys.map((k) => [k, p[k] ?? null])));
       }
       update(rpm, load, cut) {
         const t = this.ctx.currentTime;
-        this.p.rpm.setTargetAtTime(rpm, t, 0.02);
-        this.p.load.setTargetAtTime(load, t, 0.04);
+        this.p.rpm.setTargetAtTime(rpm, t, 0.015);
+        this.p.load.setTargetAtTime(load, t, 0.03);
         this.p.cut.setValueAtTime(cut ? 1 : 0, t);
       }
       dispose() { this.node.disconnect(); }
@@ -800,7 +1109,7 @@
         for (let i = 0; i < 2048; i++) { const x = (i / 2047) * 2 - 1; curve[i] = Math.tanh(2 * x) / Math.tanh(2); }
         this.shaper.curve = curve;
         this.tone = ctx.createBiquadFilter(); this.tone.type = 'lowpass'; this.tone.Q.value = 1.2;
-        this.body = ctx.createGain(); this.body.gain.value = 0.5;
+        this.body = ctx.createGain(); this.body.gain.value = 0.13; // aligné sur la sonie du modèle physique
         const g2 = ctx.createGain(); g2.gain.value = 0.5;
         this.osc1.connect(this.drive); this.osc2.connect(g2).connect(this.drive);
         this.drive.connect(this.shaper).connect(this.tone).connect(this.body).connect(out);
@@ -827,44 +1136,150 @@
     }
 
     // ===================================================================
+    //  Mixage : point d'écoute
+    // ===================================================================
+    // Le modèle sort trois pistes (échappement, admission, mécanique) que l'on
+    // mixe comme un ingénieur du son de simulateur selon la position du micro.
+    //   - Habitacle : la carrosserie coupe les aigus de l'échappement, le
+    //     volume de l'habitacle gonfle le grave (« boom »), la mécanique passe
+    //     par le tablier. C'est ce qu'on entend dans une vraie voiture.
+    //   - Cockpit : prise de son type caméra embarquée de simulateur, plus
+    //     d'admission et de détails.
+    //   - Extérieur : derrière la voiture, échappement plein spectre, un peu
+    //     d'espace.
+    const PERSPECTIVES = {
+      cabin: {
+        label: 'Habitacle', sub: 'portes fermées',
+        exLp: 1900, exShelf: 6, exBoomHz: 52, exBoom: 4, intake: 0.35, inLp: 2400, mech: 0.5, meLp: 1100,
+        wet: 0.1, irSec: 0.09,
+      },
+      cockpit: {
+        label: 'Cockpit', sub: 'caméra embarquée',
+        exLp: 6500, exShelf: 3, exBoomHz: 60, exBoom: 2, intake: 1, inLp: 8000, mech: 0.55, meLp: 3000,
+        wet: 0.06, irSec: 0.12,
+      },
+      outside: {
+        label: 'Extérieur', sub: 'derrière la voiture',
+        exLp: 15000, exShelf: 0, exBoomHz: 60, exBoom: 0, intake: 0.18, inLp: 4000, mech: 0.15, meLp: 3000,
+        wet: 0.2, irSec: 0.5,
+      },
+    };
+
+    // Réponse impulsionnelle synthétique : quelques réflexions précoces puis
+    // une queue de bruit qui s'assombrit en décroissant.
+    function makeIR(ctx, seconds) {
+      const len = Math.max(1, Math.round(ctx.sampleRate * seconds));
+      const ir = ctx.createBuffer(2, len, ctx.sampleRate);
+      for (let ch = 0; ch < 2; ch++) {
+        const d = ir.getChannelData(ch);
+        let lp = 0;
+        for (let i = 0; i < len; i++) {
+          const t = i / len;
+          lp += (0.55 - 0.45 * t) * ((Math.random() * 2 - 1) - lp);
+          d[i] = lp * Math.pow(1 - t, 2.2);
+        }
+        for (const ms of [3.1, 5.7, 8.3, 11.9]) {
+          const i = Math.round((ms + ch * 0.7) / 1000 * ctx.sampleRate);
+          if (i < len) d[i] += 0.5 * (1 - ms / 20);
+        }
+      }
+      return ir;
+    }
+
+    class Mixer {
+      constructor(ctx, out) {
+        this.ctx = ctx;
+        const f = (type, freq, q = 0.707, gain = 0) => {
+          const n = ctx.createBiquadFilter();
+          n.type = type; n.frequency.value = freq; n.Q.value = q; n.gain.value = gain;
+          return n;
+        };
+        this.ex = ctx.createGain();
+        this.intake = ctx.createGain();
+        this.mech = ctx.createGain();
+        this.exLp = f('lowpass', 2000);
+        this.exShelf = f('lowshelf', 110);
+        this.exBoom = f('peaking', 55, 1.4);
+        this.inLp = f('lowpass', 3000);
+        this.meLp = f('lowpass', 1200);
+        this.exG = ctx.createGain(); this.inG = ctx.createGain(); this.meG = ctx.createGain();
+        this.sum = ctx.createGain();
+        this.ex.connect(this.exLp).connect(this.exShelf).connect(this.exBoom).connect(this.exG).connect(this.sum);
+        this.intake.connect(this.inLp).connect(this.inG).connect(this.sum);
+        this.mech.connect(this.meLp).connect(this.meG).connect(this.sum);
+        this.dry = ctx.createGain();
+        this.wet = ctx.createGain();
+        this.verb = ctx.createConvolver();
+        this.sum.connect(this.dry).connect(out);
+        this.sum.connect(this.verb).connect(this.wet).connect(out);
+      }
+      set(name, ramp = 0.25) {
+        const p = PERSPECTIVES[name] || PERSPECTIVES.cabin;
+        const t = this.ctx.currentTime;
+        const to = (param, v) => param.setTargetAtTime(v, t, ramp);
+        to(this.exLp.frequency, p.exLp);
+        to(this.exShelf.gain, p.exShelf);
+        to(this.exBoom.frequency, p.exBoomHz);
+        to(this.exBoom.gain, p.exBoom);
+        to(this.inLp.frequency, p.inLp);
+        to(this.meLp.frequency, p.meLp);
+        // le grave gonfle en habitacle : on compense pour garder la même sonie
+        to(this.exG.gain, 1 / Math.pow(10, (p.exShelf * 0.6) / 20));
+        to(this.inG.gain, p.intake);
+        to(this.meG.gain, p.mech);
+        to(this.dry.gain, 1 - p.wet * 0.5);
+        to(this.wet.gain, p.wet);
+        this.verb.buffer = makeIR(this.ctx, p.irSec);
+      }
+    }
+
+    // ===================================================================
     //  Chaîne de sortie commune
     // ===================================================================
     class AudioEngine {
       constructor() {
-        const ctx = (this.ctx = new (window.AudioContext || window.webkitAudioContext)());
+        const ctx = (this.ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' }));
         this.master = ctx.createGain();
         this.master.gain.value = 0;
         const hp = ctx.createBiquadFilter();
-        hp.type = 'highpass'; hp.frequency.value = 28; // protège les haut-parleurs
-        const comp = ctx.createDynamicsCompressor();
-        comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.2;
-        this.bus = ctx.createGain(); // entrée des moteurs
-        this.bus.connect(hp).connect(comp).connect(this.master).connect(ctx.destination);
+        hp.type = 'highpass'; hp.frequency.value = 26; hp.Q.value = 0.6; // protège les haut-parleurs
+        // compression douce (« colle » du mix) puis limiteur de crête
+        const glue = ctx.createDynamicsCompressor();
+        glue.threshold.value = -18; glue.knee.value = 12; glue.ratio.value = 2.5;
+        glue.attack.value = 0.01; glue.release.value = 0.18;
+        const limiter = ctx.createDynamicsCompressor();
+        limiter.threshold.value = -3; limiter.knee.value = 0; limiter.ratio.value = 20;
+        limiter.attack.value = 0.002; limiter.release.value = 0.08;
+        this.bus = ctx.createGain();
+        this.bus.connect(hp).connect(glue).connect(limiter).connect(this.master).connect(ctx.destination);
+        this.mixer = new Mixer(ctx, this.bus);
+        this.mixer.set(settings.view, 0.01);
         this.voice = null;
         this.kind = null;
       }
       async use(profileId) {
         const p = profileOf(profileId);
-        let voice;
+        let voice = null;
         if (profileId === CUSTOM_ID) {
-          voice = new SampleSynth(this.ctx, this.bus, customSamples);
+          voice = new SampleSynth(this.ctx, this.mixer.ex, customSamples);
           this.kind = 'samples';
-        } else if (this.kind === 'physical' || this.kind === 'legacy') {
-          voice = this.voice instanceof SampleSynth ? null : this.voice;
+        } else if (this.voice && !(this.voice instanceof SampleSynth)) {
+          voice = this.voice;
         }
         if (!voice) {
           try {
             if (!this.ctx.audioWorklet) throw new Error('AudioWorklet absent');
-            voice = await PhysicalSynth.create(this.ctx, this.bus);
+            voice = await PhysicalSynth.create(this.ctx, this.mixer);
             this.kind = 'physical';
           } catch {
-            voice = new LegacySynth(this.ctx, this.bus);
+            voice = new LegacySynth(this.ctx, this.mixer.ex);
             this.kind = 'legacy';
           }
         }
         if (voice !== this.voice) { this.voice?.dispose(); this.voice = voice; }
         voice.setProfile(p);
       }
+      setView(name) { this.mixer.set(name); }
       setVolume(v, ramp = 0.15) {
         const t = this.ctx.currentTime;
         this.master.gain.cancelScheduledValues(t);
@@ -875,11 +1290,11 @@
     }
 
     // ===================================================================
-    //  Boîte de vitesses
+    //  Boîte de vitesses et dynamique du moteur
     // ===================================================================
     const sim = {
       targetSpeed: 0, speed: 0, accel: 0, gear: 0, rpm: 0, load: 0,
-      cutUntil: 0, shiftAt: 0,
+      cutUntil: 0, shiftAt: 0, blipUntil: 0, limiterOn: false, limiterAt: 0, hunt: 0,
     };
 
     const rpmFor = (p, speed, gear) => (speed / p.gears[gear]) * 1000;
@@ -898,11 +1313,11 @@
       let load;
       if (sim.accel > 0.15) load = Math.min(1, 0.3 + sim.accel / 3);
       else if (sim.accel < -0.4) load = 0;
-      else load = sim.speed > 2 ? 0.22 : 0.08;
-      sim.load += (load - sim.load) * (1 - Math.exp(-dt / 0.15));
+      else load = sim.speed > 2 ? 0.22 : 0.06;
+      sim.load += (load - sim.load) * (1 - Math.exp(-dt / 0.12));
 
       const last = p.gears.length - 1;
-      const upAt = p.idle + (p.redline - p.idle) * (0.38 + 0.55 * sim.load);
+      const upAt = p.idle + (p.redline - p.idle) * (0.38 + 0.57 * sim.load);
       const downAt = p.idle * 1.25 + (p.redline - p.idle) * 0.18 * sim.load;
       const canShift = now - sim.shiftAt > 450;
       if (sim.speed === 0) {
@@ -910,21 +1325,48 @@
       } else if (canShift && sim.gear < last && rpmFor(p, sim.speed, sim.gear) > upAt) {
         sim.gear++;
         sim.shiftAt = now;
-        sim.cutUntil = now + 90 + 60 * (1 - sim.load);
+        // coupure d'allumage d'une boîte robotisée : brève, plus longue à faible charge
+        sim.cutUntil = now + 55 + 70 * (1 - sim.load);
       } else if (canShift && sim.gear > 0 && rpmFor(p, sim.speed, sim.gear) < downAt) {
         sim.gear--;
         sim.shiftAt = now;
+        // coup de gaz au rétrogradage (égalisation des régimes)
+        if (p.crackle >= 0.3 && !p.diesel) sim.blipUntil = now + 160;
       }
 
-      // régime : embrayage qui patine au démarrage, ralenti sinon
+      // régime cible : embrayage qui patine au démarrage, ralenti sinon
       let rpm = rpmFor(p, sim.speed, sim.gear);
       const clutch = p.idle + (p.launch - p.idle) * sim.load;
       if (rpm < clutch) rpm = clutch + (rpm - clutch) * Math.min(1, sim.speed / 12);
-      rpm = Math.max(p.idle, Math.min(p.redline, rpm));
-      sim.rpm += (rpm - sim.rpm) * (1 - Math.exp(-dt / 0.06));
+      const blip = now < sim.blipUntil;
+      if (blip) rpm *= 1.08;
+      // ralenti vivant : la régulation chasse légèrement autour de la consigne
+      sim.hunt += (Math.random() - 0.5) * dt * 0.08;
+      sim.hunt *= Math.exp(-dt / 1.5);
+      if (sim.speed < 2) rpm *= 1 + 0.006 * Math.sin((now / 1000) * Math.PI * 2 * 0.45) + sim.hunt;
+      rpm = Math.max(p.idle * 0.97, Math.min(p.redline, rpm));
 
-      const cut = now < sim.cutUntil;
-      engine?.update(sim.rpm, cut ? 0 : sim.load, cut);
+      // inertie : la masse tournante ralentit la montée, la coupure accélère la chute
+      const shifting = now < sim.cutUntil;
+      const inertia = shifting ? 0.07 : rpm > sim.rpm ? 0.05 + 0.05 * (1 - sim.load) : 0.09;
+      sim.rpm += (rpm - sim.rpm) * (1 - Math.exp(-dt / inertia));
+
+      // rupteur : coupures en rafale à la zone rouge, pied au plancher
+      let cut = shifting;
+      if (sim.rpm > p.redline * 0.985 && sim.load > 0.5) {
+        if (now > sim.limiterAt) {
+          sim.limiterOn = !sim.limiterOn;
+          sim.limiterAt = now + (sim.limiterOn ? 30 : 45);
+          if (sim.limiterOn) sim.rpm -= p.redline * 0.02;
+        }
+        cut = cut || sim.limiterOn;
+      } else {
+        sim.limiterOn = false;
+      }
+
+      // pendant une coupure, la charge reste celle du pied : seul l'allumage manque
+      const effLoad = blip ? Math.max(sim.load, 0.7) : sim.load;
+      engine?.update(sim.rpm, effLoad, cut);
     }
 
     // ===================================================================
@@ -1174,7 +1616,7 @@
       }
       try { await wakeLock?.release(); } catch { /* ignoré */ }
       wakeLock = null;
-      Object.assign(sim, { targetSpeed: 0, speed: 0, accel: 0, gear: 0, rpm: 0, load: 0, shiftAt: 0 });
+      Object.assign(sim, { targetSpeed: 0, speed: 0, accel: 0, gear: 0, rpm: 0, load: 0, shiftAt: 0, blipUntil: 0, cutUntil: 0, limiterOn: false, hunt: 0 });
       render();
       el.rpmText.textContent = '— tr/min';
       el.start.textContent = 'Démarrer';
@@ -1234,6 +1676,24 @@
       el.clearCustom.disabled = !customRaw;
     }
 
+    function renderViews() {
+      el.views.innerHTML = '';
+      for (const [id, v] of Object.entries(PERSPECTIVES)) {
+        const b = document.createElement('button');
+        b.className = 'chip';
+        b.dataset.view = id;
+        b.setAttribute('aria-pressed', String(id === settings.view));
+        b.innerHTML = `${v.label}<small>${v.sub}</small>`;
+        b.addEventListener('click', () => {
+          settings.view = id;
+          save();
+          renderViews();
+          engine?.setView(id);
+        });
+        el.views.appendChild(b);
+      }
+    }
+
     function setSource(src) {
       settings.source = src;
       save();
@@ -1280,6 +1740,7 @@
     });
 
     renderProfiles();
+    renderViews();
     drawGauge(profileOf(settings.profile));
     setSource(settings.source);
     render();

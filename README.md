@@ -70,10 +70,11 @@ Inspirée de l'interface **XPENG XOS**, cette application offre une expérience 
 - Nécessite un accès HTTPS ([détails](DEPLOY-NAS-UGREEN.md#-installer-lapp-dans-la-voiture-pwa))
 
 ### 🔊 **Engine Sound — moteur virtuel**
-- **17 motorisations** qui **suivent la vitesse GPS** : V8 croisé, V8 plat, V12, V10, W16, F1 V10, rotatif, flat-6, 5 cylindres, V-twin, diesel…
-- **Modèle physique** : chaque cylindre allume à son angle réel, l'impulsion traverse une ligne d'échappement résonante
-- **Import de vos enregistrements** par régime, comme les banques de sons des simulateurs (stockés dans le navigateur)
-- Boîte de vitesses simulée, turbo, pétarades ; aucun service externe ; mode **Démo** à l'arrêt ([détails](docs/ENGINE-SOUND.md))
+- **18 motorisations** qui **suivent la vitesse GPS** : V8 croisé, V8 compresseur, V8 plat, V12, V10, W16, F1 V10, rotatif, flat-6, 5 cylindres, V-twin, diesel…
+- **Modèle acoustique** : allumage de chaque cylindre à son angle réel, onde de vidange, collecteurs, silencieux, tube de sortie, admission, bloc moteur
+- **Trois points d'écoute** : habitacle, cockpit, extérieur ; volumes égalisés (EBU R128)
+- **Import de vos enregistrements** par régime, comme les banques de sons des simulateurs
+- Rupteur, coup de gaz au rétrogradage, turbo, détonations ; aucun service externe ([détails](docs/ENGINE-SOUND.md))
 
 ### 📱 **Responsive & Optimisé**
 - **Portrait** : 5 colonnes, interface compacte
