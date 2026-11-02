@@ -8,17 +8,27 @@
   <!--
     Moteur virtuel — « Engine as a Service » embarqué dans le Media Hub.
 
-    Synthétise en temps réel le son d'un moteur thermique qui suit la vitesse
-    de la voiture. Tout est généré par la Web Audio API : aucun échantillon
-    audio, aucune requête tierce, fonctionne hors ligne une fois la page en
-    cache.
+    Joue en temps réel le son d'un moteur thermique qui suit la vitesse de la
+    voiture. Trois moteurs audio :
+
+      1. Modèle physique (AudioWorklet) — chaque cylindre « tire » à son angle
+         réel de vilebrequin (ordre d'allumage, bancs, collecteurs inégaux).
+         L'impulsion de pression traverse une ligne d'échappement résonante
+         (guide d'onde à retard), puis un silencieux. S'y ajoutent admission,
+         distribution, cliquetis diesel, turbo et pétarades. C'est ce qui
+         distingue à l'oreille un V8 croisé d'un V8 à vilebrequin plat.
+      2. Enregistrements de l'utilisateur — boucles calées sur un régime et
+         fondues entre elles, sur le principe des banques de sons des
+         simulateurs. Stockées localement (IndexedDB), jamais envoyées.
+      3. Repli — oscillateurs à forme d'onde harmonique, si le navigateur
+         n'offre pas AudioWorklet (page servie en HTTP hors localhost).
+
+    Aucun échantillon embarqué, aucune requête tierce : fonctionne hors ligne.
 
     Source de vitesse :
       - GPS  : navigator.geolocation (coords.speed, ou distance/temps entre deux
-               positions si le navigateur ne fournit pas la vitesse). Exige
-               HTTPS et l'autorisation de localisation.
-      - Démo : pédale virtuelle avec une physique simplifiée, pour essayer à
-               l'arrêt ou si le navigateur n'expose pas le GPS.
+               positions). Exige HTTPS et l'autorisation de localisation.
+      - Démo : pédale virtuelle avec une physique simplifiée.
 
     Le régime est déduit de la vitesse via une boîte de vitesses simulée
     (rapports en km/h pour 1000 tr/min), la charge moteur de l'accélération.
@@ -54,15 +64,11 @@
       grid-template-columns: 1fr;
     }
     @media (min-width: 860px) {
-      .app { grid-template-columns: 1.15fr 1fr; align-items: start; }
+      .app { grid-template-columns: 1.1fr 1fr; align-items: start; }
       header { grid-column: 1 / -1; }
+      .gauge-panel { position: sticky; top: 16px; }
     }
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
+    header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .brand { display: flex; flex-direction: column; gap: 2px; }
     .brand h1 {
       font-size: 15px;
@@ -119,13 +125,8 @@
       color: var(--muted);
       margin-top: 4px;
     }
-    .rpm-text {
-      text-align: center;
-      font-variant-numeric: tabular-nums;
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 4px;
-    }
+    .rpm-text { text-align: center; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; margin-top: 4px; }
+    .engine-name { text-align: center; font-size: 13px; color: var(--text); margin-top: 2px; min-height: 1.4em; }
 
     /* ------------------------------------------------------------- contrôles */
     .controls { display: flex; flex-direction: column; gap: 18px; }
@@ -136,33 +137,35 @@
       color: var(--muted);
       margin-bottom: 8px;
     }
-    .profiles {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-    }
+    .family { font-size: 12px; color: #64748b; margin: 10px 2px 6px; }
+    .family:first-child { margin-top: 0; }
+    .profiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .chip {
       border: 1px solid var(--line);
       background: rgba(2, 6, 23, 0.6);
       color: var(--text);
       border-radius: 16px;
-      padding: 12px 8px;
+      padding: 10px 8px;
       font: inherit;
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       text-align: center;
-      min-height: 56px;
+      min-height: 54px;
     }
     .chip small { display: block; font-size: 11px; font-weight: 500; color: var(--muted); margin-top: 2px; }
     .chip[aria-pressed="true"] {
       border-color: var(--accent);
       background: linear-gradient(145deg, rgba(34, 211, 238, 0.22), rgba(59, 130, 246, 0.18));
     }
+    .chip:disabled { opacity: 0.4; cursor: default; }
     .segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .row { display: flex; align-items: center; gap: 12px; }
     input[type="range"] { flex: 1; accent-color: var(--accent); height: 36px; }
     .vol-val { width: 44px; text-align: right; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 13px; }
+    .file-btn { display: flex; align-items: center; justify-content: center; flex: 1; }
+    .file-btn input { display: none; }
+    .row .chip { flex: 1; min-height: 48px; }
 
     .start {
       border: 0;
@@ -201,14 +204,10 @@
     }
     .pedal.visible { display: block; }
     .pedal.pressed { background: rgba(249, 115, 22, 0.38); }
-    .status {
-      font-size: 13px;
-      color: var(--muted);
-      line-height: 1.5;
-      min-height: 2.6em;
-    }
+    .status { font-size: 13px; color: var(--muted); line-height: 1.5; min-height: 1.5em; }
     .status.warn { color: #fdba74; }
     .note { font-size: 12px; color: #64748b; line-height: 1.5; }
+    .note code { color: var(--muted); }
   </style>
 </head>
 <body>
@@ -221,7 +220,7 @@
       <a class="back" href="/">← Media Hub</a>
     </header>
 
-    <section class="panel">
+    <section class="panel gauge-panel">
       <div class="gauge-wrap">
         <svg class="gauge" viewBox="0 0 400 260" aria-hidden="true">
           <defs>
@@ -248,12 +247,33 @@
         </div>
       </div>
       <div class="rpm-text" id="rpmText">— tr/min</div>
+      <div class="engine-name" id="engineName"></div>
     </section>
 
     <section class="panel controls">
+      <button class="start" id="start">Démarrer</button>
+      <button class="pedal" id="pedal">Maintenir pour accélérer</button>
+      <p class="status" id="status">Appuyez sur Démarrer à l'arrêt, avant de prendre la route.</p>
+
       <div>
         <div class="section-title">Moteur</div>
-        <div class="profiles" id="profiles" role="group" aria-label="Choix du moteur"></div>
+        <div id="profiles" role="group" aria-label="Choix du moteur"></div>
+      </div>
+
+      <div>
+        <div class="section-title">Mes enregistrements</div>
+        <p class="note">
+          Comme les banques de sons des simulateurs : un fichier par régime, nommé
+          avec ce régime (<code>1000.wav</code>, <code>3500.mp3</code>, <code>6000.ogg</code>…).
+          Ajoutez <code>off</code> pour les sons pied levé (<code>3500_off.wav</code>).
+          Utilisez vos propres prises de son ou des sons sous licence libre.
+          Les fichiers restent dans ce navigateur.
+        </p>
+        <div class="row" style="margin-top: 10px">
+          <label class="chip file-btn">Importer des fichiers<input type="file" id="importFiles" multiple accept="audio/*" /></label>
+          <button class="chip" id="clearCustom" disabled>Supprimer</button>
+        </div>
+        <p class="status" id="customStatus"></p>
       </div>
 
       <div>
@@ -272,12 +292,8 @@
         </div>
       </div>
 
-      <button class="start" id="start">Démarrer</button>
-      <button class="pedal" id="pedal">Maintenir pour accélérer</button>
-
-      <p class="status" id="status">Appuyez sur Démarrer à l'arrêt, avant de prendre la route.</p>
       <p class="note">
-        Son 100 % synthétisé dans le navigateur, sans échantillon ni service externe.
+        Son généré dans le navigateur, sans service externe.
         Le mode GPS demande l'accès HTTPS au Media Hub et l'autorisation de localisation.
         Gardez un volume qui laisse entendre les sirènes et les alertes du véhicule.
       </p>
@@ -288,41 +304,181 @@
   (() => {
     'use strict';
 
-    // ------------------------------------------------------------- profils ---
+    // ===================================================================
+    //  Motorisations
+    // ===================================================================
+    // fire  : angles d'allumage en degrés de vilebrequin sur un cycle de 720°
+    //         (4 temps), dans l'ordre d'allumage.
+    // bank  : ligne d'échappement de chaque allumage (0 ou 1).
+    // pipes : longueur des deux lignes (m) — fixe la résonance du tube.
+    // lag   : retard (ms) par allumage, pour les collecteurs de longueurs
+    //         inégales (le « grondement » boxer).
     // gears : km/h pour 1000 tr/min sur chaque rapport.
-    // uneven : énergie hors des ordres d'allumage (glouglou du V8 à vilebrequin
-    //          croisé, quasi nulle sur un V12 parfaitement équilibré).
-    // bright : richesse en harmoniques aiguës. grit : saturation.
-    // crackle : pétarades au lever de pied.
+    // Timbre : sharp (durée de l'impulsion, ms), noise (part de souffle),
+    //   rough (dispersion de combustion), muffler (coupure du silencieux, Hz),
+    //   reso (réflexion dans le tube, 0-0,9), intake, mech (distribution),
+    //   diesel (cliquetis), crackle (pétarades), turbo (0-1).
+    // level : correction de volume mesurée (EBU R128) pour que tous les
+    //         moteurs sortent à la même sonie perçue.
+    const even = (n, offset = 0) => Array.from({ length: n }, (_, i) => offset + (i * 720) / n);
+    const alt = (n) => Array.from({ length: n }, (_, i) => i % 2);
+    const one = (n) => Array(n).fill(0);
+
     const PROFILES = {
-      v8:    { label: 'V8',      sub: 'muscle car',   cyl: 8,  idle: 750,  redline: 6800,  launch: 2200, gears: [8.5, 14, 20, 27, 35, 44],         uneven: 0.55, bright: 0.55, grit: 2.4, crackle: 0.7, turbo: 0 },
-      v12:   { label: 'V12',     sub: 'grand tourisme', cyl: 12, idle: 900,  redline: 8700, launch: 2600, gears: [8, 12.5, 17, 22, 27.5, 33, 39],   uneven: 0.06, bright: 0.85, grit: 1.4, crackle: 0.25, turbo: 0 },
-      f1:    { label: 'F1 V10',  sub: 'années 2000',  cyl: 10, idle: 4000, redline: 19000, launch: 9000, gears: [7.6, 9.8, 11.8, 13.6, 15.3, 16.9, 18.4], uneven: 0.04, bright: 1.0, grit: 1.8, crackle: 0.35, turbo: 0 },
-      flat6: { label: 'Flat-6',  sub: 'sportive',     cyl: 6,  idle: 900,  redline: 9000,  launch: 3000, gears: [7.5, 12, 16.5, 21, 26, 31, 36],   uneven: 0.22, bright: 0.75, grit: 1.9, crackle: 0.45, turbo: 0 },
-      i4t:   { label: '4 cyl.',  sub: 'turbo',        cyl: 4,  idle: 800,  redline: 7200,  launch: 2800, gears: [8, 14, 20.5, 27, 33.5, 40],       uneven: 0.12, bright: 0.6, grit: 2.0, crackle: 0.5, turbo: 1 },
-      v6:    { label: 'V6',      sub: 'biturbo',      cyl: 6,  idle: 800,  redline: 7500,  launch: 2600, gears: [8.2, 13.5, 19.5, 25.5, 32, 38.5, 45], uneven: 0.3, bright: 0.65, grit: 2.1, crackle: 0.55, turbo: 0.7 },
+      // ---------------------------------------------------------------- V8 ---
+      v8x: {
+        fam: 'V8', label: 'V8 croisé', sub: 'muscle car US',
+        // ordre 1-8-4-3-6-5-7-2 ; bancs gauche = cylindres impairs
+        fire: even(8), bank: [0, 1, 1, 0, 1, 0, 0, 1], pipes: [1.7, 1.85],
+        idle: 700, redline: 6600, launch: 2200, gears: [8.5, 14, 20, 27, 35, 44],
+        sharp: 3.2, noise: 0.25, rough: 0.09, muffler: 1300, reso: 0.62, intake: 0.5, mech: 0.12, crackle: 0.65, turbo: 0, level: 1.04,
+      },
+      v8f: {
+        fam: 'V8', label: 'V8 plat', sub: 'supercar italienne',
+        fire: even(8), bank: alt(8), pipes: [1.1, 1.1],
+        idle: 1000, redline: 9000, launch: 3200, gears: [7.5, 11.5, 15.5, 20, 24.5, 29, 34],
+        sharp: 1.8, noise: 0.3, rough: 0.04, muffler: 2600, reso: 0.55, intake: 0.8, mech: 0.14, crackle: 0.55, turbo: 0, level: 1.27,
+      },
+      v8tt: {
+        fam: 'V8', label: 'V8 biturbo', sub: 'GT allemande',
+        fire: even(8), bank: [0, 1, 1, 0, 1, 0, 0, 1], pipes: [1.4, 1.5],
+        idle: 750, redline: 7200, launch: 2600, gears: [8, 13, 18.5, 24.5, 31, 38, 45],
+        sharp: 2.8, noise: 0.3, rough: 0.06, muffler: 1500, reso: 0.55, intake: 0.4, mech: 0.1, crackle: 0.75, turbo: 0.8, level: 1.32,
+      },
+      // ------------------------------------------------- Grand tourisme / exotique
+      v12: {
+        fam: 'V10 · V12 · W16', label: 'V12', sub: 'atmosphérique',
+        fire: even(12), bank: alt(12), pipes: [1.25, 1.25],
+        idle: 900, redline: 8700, launch: 2800, gears: [8, 12.5, 17, 22, 27.5, 33, 39],
+        sharp: 1.6, noise: 0.22, rough: 0.03, muffler: 3000, reso: 0.5, intake: 0.9, mech: 0.12, crackle: 0.3, turbo: 0, level: 1.36,
+      },
+      v10: {
+        fam: 'V10 · V12 · W16', label: 'V10', sub: 'supercar',
+        // V10 à 90° : intervalles alternés 54°/90°
+        fire: [0, 54, 144, 198, 288, 342, 432, 486, 576, 630], bank: alt(10), pipes: [1.15, 1.2],
+        idle: 1000, redline: 8700, launch: 3000, gears: [7.8, 12, 16.5, 21, 26, 31, 36],
+        sharp: 1.7, noise: 0.28, rough: 0.04, muffler: 2700, reso: 0.55, intake: 0.85, mech: 0.12, crackle: 0.55, turbo: 0, level: 1.26,
+      },
+      w16: {
+        fam: 'V10 · V12 · W16', label: 'W16', sub: 'quadriturbo',
+        fire: even(16), bank: alt(16), pipes: [1.5, 1.55],
+        idle: 800, redline: 6700, launch: 2600, gears: [9, 14.5, 20, 26, 33, 40, 48],
+        sharp: 2.4, noise: 0.35, rough: 0.03, muffler: 1400, reso: 0.5, intake: 0.5, mech: 0.08, crackle: 0.3, turbo: 1, level: 1.78,
+      },
+      // ------------------------------------------------------------- Course ---
+      f1v10: {
+        fam: 'Course', label: 'F1 V10', sub: 'années 2000',
+        fire: even(10), bank: alt(10), pipes: [0.55, 0.55],
+        idle: 4000, redline: 19000, launch: 9000, gears: [7.6, 9.8, 11.8, 13.6, 15.3, 16.9, 18.4],
+        sharp: 0.9, noise: 0.25, rough: 0.02, muffler: 7000, reso: 0.45, intake: 1, mech: 0.08, crackle: 0.35, turbo: 0, level: 1.2,
+      },
+      rotary: {
+        fam: 'Course', label: 'Rotatif', sub: '2 rotors',
+        // chaque rotor allume une fois par tour d'arbre excentrique
+        fire: [0, 180, 360, 540], bank: [0, 1, 0, 1], pipes: [0.9, 0.95],
+        idle: 1000, redline: 9000, launch: 3500, gears: [8, 12.5, 17.5, 23, 29, 35],
+        sharp: 0.7, noise: 0.45, rough: 0.12, muffler: 2400, reso: 0.5, intake: 0.7, mech: 0.02, crackle: 0.9, turbo: 0, level: 1.64,
+      },
+      // ------------------------------------------------------------ Sportives
+      flat6: {
+        fam: 'Sportives', label: 'Flat-6', sub: 'boxer atmo',
+        fire: even(6), bank: alt(6), pipes: [1.0, 1.0],
+        idle: 900, redline: 9000, launch: 3000, gears: [7.5, 12, 16.5, 21, 26, 31, 36],
+        sharp: 1.9, noise: 0.28, rough: 0.05, muffler: 2400, reso: 0.55, intake: 0.9, mech: 0.18, crackle: 0.45, turbo: 0, level: 1.16,
+      },
+      i6: {
+        fam: 'Sportives', label: '6 en ligne', sub: 'propulsion',
+        fire: even(6), bank: one(6), pipes: [1.8, 1.8],
+        idle: 750, redline: 7400, launch: 2600, gears: [8.2, 13.5, 19.5, 25.5, 32, 38.5],
+        sharp: 2.2, noise: 0.25, rough: 0.03, muffler: 1900, reso: 0.6, intake: 0.6, mech: 0.12, crackle: 0.45, turbo: 0, level: 1.1,
+      },
+      i5: {
+        fam: 'Sportives', label: '5 cylindres', sub: 'turbo rallye',
+        fire: even(5), bank: one(5), pipes: [1.6, 1.6],
+        idle: 850, redline: 7000, launch: 3000, gears: [8.5, 14, 20, 26.5, 33, 39.5],
+        sharp: 2.4, noise: 0.32, rough: 0.06, muffler: 1700, reso: 0.62, intake: 0.6, mech: 0.12, crackle: 0.7, turbo: 0.9, level: 1.1,
+      },
+      v6tt: {
+        fam: 'Sportives', label: 'V6 biturbo', sub: 'GT japonaise',
+        fire: even(6), bank: alt(6), pipes: [1.3, 1.35],
+        idle: 800, redline: 7100, launch: 2600, gears: [8.2, 13.5, 19.5, 25.5, 32, 38.5],
+        sharp: 2.4, noise: 0.3, rough: 0.05, muffler: 1700, reso: 0.55, intake: 0.5, mech: 0.12, crackle: 0.55, turbo: 0.75, level: 1.23,
+      },
+      // --------------------------------------------------------- Caractère ---
+      boxer4: {
+        fam: 'Caractère', label: 'Boxer 4', sub: 'collecteurs inégaux',
+        fire: even(4), bank: [0, 1, 0, 1], pipes: [1.4, 1.65], lag: [0, 1.6, 0.4, 2.2],
+        idle: 800, redline: 7200, launch: 3000, gears: [8, 14, 20.5, 27, 33.5, 40],
+        sharp: 2.6, noise: 0.35, rough: 0.07, muffler: 1500, reso: 0.6, intake: 0.6, mech: 0.12, crackle: 0.55, turbo: 0.85, level: 1.0,
+      },
+      i4t: {
+        fam: 'Caractère', label: '4 cylindres', sub: 'compacte turbo',
+        fire: even(4), bank: one(4), pipes: [1.9, 1.9],
+        idle: 800, redline: 7000, launch: 2800, gears: [8, 14, 20.5, 27, 33.5, 40],
+        sharp: 2.2, noise: 0.3, rough: 0.05, muffler: 1800, reso: 0.55, intake: 0.6, mech: 0.15, crackle: 0.5, turbo: 1, level: 1.02,
+      },
+      i3: {
+        fam: 'Caractère', label: '3 cylindres', sub: 'petite sportive',
+        fire: even(3), bank: one(3), pipes: [1.7, 1.7],
+        idle: 850, redline: 6800, launch: 2800, gears: [8, 14, 20.5, 27, 33.5, 40],
+        sharp: 2.6, noise: 0.3, rough: 0.07, muffler: 1700, reso: 0.6, intake: 0.5, mech: 0.15, crackle: 0.45, turbo: 0.8, level: 0.87,
+      },
+      vtwin: {
+        fam: 'Caractère', label: 'V-twin', sub: 'gros cube 45°',
+        // allumages à 315° puis 405° : le battement caractéristique
+        fire: [0, 315], bank: [0, 0], pipes: [1.3, 1.3],
+        idle: 850, redline: 5600, launch: 2200, gears: [11, 17, 23, 29, 35, 41],
+        sharp: 4.5, noise: 0.3, rough: 0.14, muffler: 1100, reso: 0.65, intake: 0.4, mech: 0.25, crackle: 0.5, turbo: 0, level: 0.67,
+      },
+      // ----------------------------------------------------------- Utilitaire
+      diesel: {
+        fam: 'Utilitaire', label: 'Diesel 6L', sub: 'poids lourd',
+        fire: even(6), bank: one(6), pipes: [3.2, 3.2],
+        idle: 600, redline: 2400, launch: 1100,
+        gears: [3.2, 4.4, 6, 8, 10.8, 14.5, 19.5, 26, 34, 42, 50, 58],
+        sharp: 3.5, noise: 0.35, rough: 0.05, muffler: 900, reso: 0.6, intake: 0.5, mech: 0.1, diesel: 1, crackle: 0, turbo: 1, level: 1.51,
+      },
     };
 
-    // -------------------------------------------------------------- réglages ---
+    // Moteur « Mes enregistrements » : les régimes viennent des fichiers.
+    const CUSTOM_ID = 'custom';
+    const customProfile = {
+      fam: 'Mes enregistrements', label: 'Mes sons', sub: 'importés',
+      idle: 900, redline: 7000, launch: 2600, gears: [8.5, 14, 20, 27, 35, 44], crackle: 0,
+    };
+    const profileOf = (id) => (id === CUSTOM_ID ? customProfile : PROFILES[id]);
+
+    // ===================================================================
+    //  Réglages
+    // ===================================================================
     const STORE_KEY = 'xpeng-engine-sound:v1';
-    const settings = { profile: 'v8', source: 'gps', volume: 60 };
+    const settings = { profile: 'v8x', source: 'gps', volume: 60 };
     try {
       Object.assign(settings, JSON.parse(localStorage.getItem(STORE_KEY) || '{}'));
     } catch { /* stockage indisponible : valeurs par défaut */ }
-    if (!PROFILES[settings.profile]) settings.profile = 'v8';
+    // anciens identifiants (première version)
+    const RENAMED = { v8: 'v8x', f1: 'f1v10', v6: 'v6tt' };
+    if (RENAMED[settings.profile]) settings.profile = RENAMED[settings.profile];
+    if (!PROFILES[settings.profile] && settings.profile !== CUSTOM_ID) settings.profile = 'v8x';
     if (settings.source !== 'gps' && settings.source !== 'demo') settings.source = 'gps';
     const save = () => { try { localStorage.setItem(STORE_KEY, JSON.stringify(settings)); } catch { /* ignoré */ } };
 
-    // ------------------------------------------------------------------- DOM ---
+    // ===================================================================
+    //  DOM
+    // ===================================================================
     const $ = (id) => document.getElementById(id);
     const el = {
       profiles: $('profiles'), srcGps: $('srcGps'), srcDemo: $('srcDemo'),
       volume: $('volume'), volVal: $('volVal'), start: $('start'), pedal: $('pedal'),
       status: $('status'), gear: $('gear'), speed: $('speed'), rpmText: $('rpmText'),
-      arcBg: $('arcBg'), arcRed: $('arcRed'), arcVal: $('arcVal'), ticks: $('ticks'),
+      engineName: $('engineName'), arcBg: $('arcBg'), arcRed: $('arcRed'), arcVal: $('arcVal'),
+      ticks: $('ticks'), importFiles: $('importFiles'), clearCustom: $('clearCustom'),
+      customStatus: $('customStatus'),
     };
 
-    // ------------------------------------------------------- compte-tours SVG ---
+    // ===================================================================
+    //  Compte-tours SVG
+    // ===================================================================
     const CX = 200, CY = 196, R = 160, A0 = -200, A1 = 20; // degrés
     const polar = (deg, r = R) => {
       const a = (deg * Math.PI) / 180;
@@ -340,7 +496,7 @@
       gaugeMax = Math.ceil((profile.redline * 1.06) / 1000) * 1000;
       el.arcBg.setAttribute('d', arc(A0, A1));
       el.arcRed.setAttribute('d', arc(fracToDeg(profile.redline / gaugeMax), A1));
-      const step = gaugeMax > 12000 ? 2000 : 1000;
+      const step = gaugeMax > 12000 ? 2000 : gaugeMax <= 3000 ? 500 : 1000;
       let html = '';
       for (let v = 0; v <= gaugeMax; v += step) {
         const deg = fracToDeg(v / gaugeMax);
@@ -349,183 +505,387 @@
         html += `<text x="${tx}" y="${ty + 4}" fill="#94a3b8" font-size="13" text-anchor="middle" font-family="inherit">${v / 1000}</text>`;
       }
       el.ticks.innerHTML = html;
+      el.engineName.textContent = `${profile.label} · ${profile.sub}`;
     }
 
-    // ---------------------------------------------------------------- moteur ---
-    // Une forme d'onde par profil : harmoniques de la fréquence de cycle
-    // (un cycle = deux tours de vilebrequin en 4 temps). Les ordres multiples
-    // du nombre de cylindres portent l'essentiel de l'énergie.
-    function buildWave(ctx, p) {
-      const N = Math.min(160, p.cyl * 12);
-      const real = new Float32Array(N + 1);
-      const imag = new Float32Array(N + 1);
-      let seed = p.cyl * 7919;
+    // ===================================================================
+    //  1. Modèle physique (AudioWorklet)
+    // ===================================================================
+    // Le code du processeur est embarqué ici et chargé via une URL Blob pour
+    // que la page reste un fichier unique.
+    const WORKLET_SRC = `
+    const TAU = Math.PI * 2;
+    class EngineProcessor extends AudioWorkletProcessor {
+      static get parameterDescriptors() {
+        return [
+          { name: 'rpm', defaultValue: 800, minValue: 0, maxValue: 25000, automationRate: 'k-rate' },
+          { name: 'load', defaultValue: 0, minValue: 0, maxValue: 1, automationRate: 'k-rate' },
+          { name: 'cut', defaultValue: 0, minValue: 0, maxValue: 1, automationRate: 'k-rate' },
+        ];
+      }
+      constructor() {
+        super();
+        this.cfg = null;
+        this.phase = 0;
+        this.next = 0;
+        this.seed = 22222;
+        this.pending = [];
+        this.port.onmessage = (e) => this.configure(e.data);
+      }
+      rand() { // xorshift, [0, 1)
+        let x = this.seed; x ^= x << 13; x ^= x >>> 17; x ^= x << 5; this.seed = x >>> 0;
+        return this.seed / 4294967296;
+      }
+      configure(c) {
+        const sr = sampleRate;
+        this.cfg = c;
+        this.n = c.fire.length;
+        this.decay = Math.exp(-1 / ((c.sharp / 1000) * sr));
+        this.popDecay = Math.exp(-1 / (0.012 * sr));
+        this.tickDecay = Math.exp(-1 / (0.0007 * sr));
+        this.bovDecay = Math.exp(-1 / (0.22 * sr));
+        this.lagSamples = (c.lag || []).map((ms) => Math.round((ms / 1000) * sr));
+        this.banks = c.pipes.map((len) => {
+          const D = Math.max(8, Math.round(((2 * len) / 343) * sr));
+          return { D, buf: new Float32Array(D + 1), idx: 0, env: 0, pop: 0, lp: 0, m1: 0, m2: 0, dc: 0, dcx: 0 };
+        });
+        this.tick = 0; this.tickPrev = 0;
+        this.boost = 0; this.bov = 0; this.bovF = 3000; this.tPh = 0; this.wasBoosted = false;
+        this.inLow = 0; this.inBand = 0; this.bLow = 0; this.bBand = 0;
+        this.gain = (0.55 / Math.sqrt(Math.max(2, this.n) / 4)) * (c.level || 1);
+        this.next = 0; this.phase = 0;
+      }
+      fire(i, load, rpm, cut) {
+        const c = this.cfg;
+        const idleish = 1 - Math.min(1, (rpm - c.idle) / (c.redline - c.idle) + load);
+        let a = 0.2 + 0.8 * Math.pow(load, 0.8);
+        a *= 1 + c.rough * (this.rand() * 2 - 1) * (0.5 + idleish);
+        if (cut) a *= 0.06;
+        const bank = c.bank[i];
+        const lag = this.lagSamples[i] || 0;
+        if (lag > 0) this.pending.push({ bank, a, t: lag });
+        else this.banks[bank].env += a;
+        // distribution et cliquetis diesel
+        this.tick += c.mech * 0.35 + (c.diesel || 0) * (0.9 - 0.5 * load);
+        // retour de flamme au lever de pied
+        if (c.crackle && load < 0.06 && rpm > c.idle * 1.5 && this.rand() < c.crackle * 0.07) {
+          this.banks[bank].pop += 0.9 + this.rand() * 1.4;
+        }
+      }
+      process(inputs, outputs, params) {
+        const out = outputs[0];
+        const L = out[0], R = out[1] || out[0];
+        const c = this.cfg;
+        if (!c) { L.fill(0); if (R !== L) R.fill(0); return true; }
+        const sr = sampleRate;
+        // les automatismes d'AudioParam peuvent déborder légèrement de la plage
+        // déclarée : une charge de -0,0003 suffit à produire NaN dans pow().
+        const rpm = Math.max(0, params.rpm[0]);
+        const load = Math.min(1, Math.max(0, params.load[0]));
+        const cut = params.cut[0] > 0.5;
+        const dps = (rpm * 6) / sr; // degrés de vilebrequin par échantillon
+        const span = Math.max(0, Math.min(1, (rpm - c.idle) / (c.redline - c.idle)));
+        const muff = c.muffler * (0.7 + 0.6 * load + 0.4 * span);
+        const mc = 1 - Math.exp((-TAU * Math.min(muff, sr * 0.45)) / sr);
+        const bright = 0.06 + 0.12 * load;
+        const damp = 0.35 + 0.3 * span;
+        const fb = -c.reso;
+        // admission : bruit filtré en bande autour d'une fréquence liée au régime
+        const inF = 2 * Math.sin((Math.PI * Math.min(260 + rpm * 0.14, sr * 0.2)) / sr);
+        const inGain = c.intake * 0.06 * (0.15 + load) * (0.3 + span);
+        // turbo
+        const boostTarget = c.turbo ? load * Math.min(1, 0.2 + span * 1.1) : 0;
+        // montée en pression lente (inertie de la turbine), chute rapide
+        const spool = boostTarget > this.boost ? 1.4 : 5;
+        this.boost += (boostTarget - this.boost) * (1 - Math.exp((-spool * L.length) / sr));
+        if (this.boost > 0.45) this.wasBoosted = true;
+        if (this.wasBoosted && load < 0.08 && c.turbo) { this.bov = this.boost; this.bovF = 3800; this.wasBoosted = false; }
+        const whistleF = 1800 + 7000 * this.boost;
+        const whistleA = (c.turbo || 0) * 0.025 * this.boost * this.boost;
+        const n = this.n, ang = c.fire, banks = this.banks;
+        const g = this.gain;
+
+        for (let s = 0; s < L.length; s++) {
+          // vilebrequin
+          this.phase += dps;
+          for (;;) {
+            const a = this.next < n ? ang[this.next] : 720;
+            if (this.phase < a) break;
+            if (this.next < n) { this.fire(this.next, load, rpm, cut); this.next++; }
+            else { this.phase -= 720; this.next = 0; }
+          }
+          // collecteurs de longueurs inégales
+          for (let p = this.pending.length - 1; p >= 0; p--) {
+            const ev = this.pending[p];
+            if (--ev.t <= 0) { banks[ev.bank].env += ev.a; this.pending.splice(p, 1); }
+          }
+          const w = this.rand() * 2 - 1;
+          let mix0 = 0, mix1 = 0;
+          for (let b = 0; b < banks.length; b++) {
+            const k = banks[b];
+            const w2 = this.rand() * 2 - 1;
+            // impulsion de pression : front raide, décroissance exponentielle
+            const exc = k.env * ((1 - c.noise) + c.noise * w2) + k.pop * w2;
+            k.env *= this.decay; k.pop *= this.popDecay;
+            // ligne d'échappement : guide d'onde avec pertes
+            const rd = k.idx; // tampon de longueur D+1 : lecture = écriture la plus ancienne
+            const delayed = k.buf[rd];
+            k.lp += damp * (delayed - k.lp);
+            const y = exc + fb * k.lp;
+            k.buf[k.idx] = y;
+            k.idx = k.idx + 1 > k.D ? 0 : k.idx + 1;
+            // silencieux : deux pôles + un peu de son direct
+            k.m1 += mc * (y - k.m1); k.m2 += mc * (k.m1 - k.m2);
+            let o = k.m2 + bright * y;
+            // coupe le continu
+            const hp = o - k.dcx + 0.995 * k.dc; k.dcx = o; k.dc = hp; o = hp;
+            if (b === 0) mix0 = o; else mix1 = o;
+          }
+          // admission
+          const inHigh = w - this.inLow - 0.7 * this.inBand;
+          this.inBand += inF * inHigh; this.inLow += inF * this.inBand;
+          const envSum = banks[0].env + (banks[1] ? banks[1].env : 0);
+          const intake = this.inBand * inGain * (0.4 + envSum);
+          // distribution / cliquetis : clic aigu
+          const tk = this.tick * w; const tickOut = tk - this.tickPrev; this.tickPrev = tk;
+          this.tick *= this.tickDecay;
+          // turbo : sifflement + décharge de la soupape
+          this.tPh += whistleF / sr; if (this.tPh > 1) this.tPh -= 1;
+          let turbo = Math.sin(TAU * this.tPh) * whistleA;
+          if (this.bov > 0.01) {
+            this.bovF *= 0.99996;
+            const bf = 2 * Math.sin((Math.PI * this.bovF) / sr);
+            const bh = w - this.bLow - 0.5 * this.bBand;
+            this.bBand += bf * bh; this.bLow += bf * this.bBand;
+            turbo += this.bBand * this.bov * 0.12 * c.turbo;
+            this.bov *= this.bovDecay;
+          }
+          const common = intake + tickOut * 0.05 + turbo;
+          const l = g * (mix0 + 0.55 * mix1) + common;
+          const r = g * (mix1 + 0.55 * mix0) + common;
+          if (!Number.isFinite(l) || !Number.isFinite(r)) {
+            // garde-fou : une valeur invalide resterait piégée dans les boucles
+            // de rétroaction ; on repart d'un état propre plutôt que de se taire
+            this.configure(c);
+            L[s] = 0; R[s] = 0;
+            continue;
+          }
+          L[s] = l; R[s] = r;
+        }
+        return true;
+      }
+    }
+    registerProcessor('engine-processor', EngineProcessor);
+    `;
+
+    class PhysicalSynth {
+      static loaded = new WeakSet();
+      static async create(ctx, out) {
+        // un processeur ne s'enregistre qu'une fois par contexte audio
+        if (!PhysicalSynth.loaded.has(ctx)) {
+          const url = URL.createObjectURL(new Blob([WORKLET_SRC], { type: 'application/javascript' }));
+          try { await ctx.audioWorklet.addModule(url); } finally { URL.revokeObjectURL(url); }
+          PhysicalSynth.loaded.add(ctx);
+        }
+        return new PhysicalSynth(ctx, out);
+      }
+      constructor(ctx, out) {
+        this.ctx = ctx;
+        this.handlesEffects = true;
+        this.node = new AudioWorkletNode(ctx, 'engine-processor', { numberOfOutputs: 1, outputChannelCount: [2] });
+        this.node.connect(out);
+        this.p = {
+          rpm: this.node.parameters.get('rpm'),
+          load: this.node.parameters.get('load'),
+          cut: this.node.parameters.get('cut'),
+        };
+      }
+      setProfile(p) {
+        this.node.port.postMessage({
+          fire: p.fire, bank: p.bank, pipes: p.pipes, lag: p.lag || null,
+          idle: p.idle, redline: p.redline, sharp: p.sharp, noise: p.noise, rough: p.rough,
+          muffler: p.muffler, reso: p.reso, intake: p.intake, mech: p.mech, diesel: p.diesel || 0,
+          crackle: p.crackle || 0, turbo: p.turbo || 0, level: p.level || 1,
+        });
+      }
+      update(rpm, load, cut) {
+        const t = this.ctx.currentTime;
+        this.p.rpm.setTargetAtTime(rpm, t, 0.02);
+        this.p.load.setTargetAtTime(load, t, 0.04);
+        this.p.cut.setValueAtTime(cut ? 1 : 0, t);
+      }
+      dispose() { this.node.disconnect(); }
+    }
+
+    // ===================================================================
+    //  2. Enregistrements de l'utilisateur (banque de sons par régime)
+    // ===================================================================
+    class SampleSynth {
+      // samples : [{ rpm, layer: 'on' | 'off', buffer: AudioBuffer }]
+      constructor(ctx, out, samples) {
+        this.ctx = ctx;
+        this.handlesEffects = true;
+        this.tone = ctx.createBiquadFilter();
+        this.tone.type = 'lowpass';
+        this.tone.frequency.value = 12000;
+        this.tone.connect(out);
+        const make = (s) => {
+          const src = ctx.createBufferSource();
+          src.buffer = s.buffer;
+          src.loop = true;
+          const g = ctx.createGain();
+          g.gain.value = 0;
+          src.connect(g).connect(this.tone);
+          src.start(0, Math.random() * s.buffer.duration);
+          return { ...s, src, g };
+        };
+        this.on = samples.filter((s) => s.layer === 'on').sort((a, b) => a.rpm - b.rpm).map(make);
+        this.off = samples.filter((s) => s.layer === 'off').sort((a, b) => a.rpm - b.rpm).map(make);
+        if (!this.on.length) { this.on = this.off; this.off = []; }
+      }
+      setProfile() { /* les régimes viennent des fichiers */ }
+      layer(list, rpm, level, t) {
+        if (!list.length) return;
+        // les deux enregistrements qui encadrent le régime, fondu à puissance constante
+        let i = list.findIndex((s) => s.rpm >= rpm);
+        if (i === -1) i = list.length - 1;
+        const hi = list[i], lo = list[Math.max(0, i - 1)];
+        let x = 1;
+        if (hi !== lo) x = Math.min(1, Math.max(0, Math.log(rpm / lo.rpm) / Math.log(hi.rpm / lo.rpm)));
+        for (const s of list) {
+          const w = s === hi && s === lo ? 1 : s === hi ? Math.sin((x * Math.PI) / 2) : s === lo ? Math.cos((x * Math.PI) / 2) : 0;
+          s.g.gain.setTargetAtTime(w * level, t, 0.03);
+          s.src.playbackRate.setTargetAtTime(Math.min(4, Math.max(0.25, rpm / s.rpm)), t, 0.03);
+        }
+      }
+      update(rpm, load, cut) {
+        const t = this.ctx.currentTime;
+        const on = cut ? 0.35 : this.off.length ? Math.min(1, load * 1.6) : 0.55 + 0.45 * load;
+        this.layer(this.on, rpm, on, t);
+        this.layer(this.off, rpm, 1 - on, t);
+        this.tone.frequency.setTargetAtTime(this.off.length ? 12000 : 2500 + 9500 * load, t, 0.05);
+      }
+      dispose() {
+        for (const s of [...this.on, ...this.off]) { try { s.src.stop(); } catch { /* déjà arrêté */ } }
+        this.tone.disconnect();
+      }
+    }
+
+    // ===================================================================
+    //  3. Repli : oscillateurs harmoniques (navigateur sans AudioWorklet)
+    // ===================================================================
+    function buildWave(ctx, cyl, uneven, bright) {
+      const N = Math.min(160, cyl * 12);
+      const real = new Float32Array(N + 1), imag = new Float32Array(N + 1);
+      let seed = cyl * 7919;
       const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
       for (let n = 1; n <= N; n++) {
-        const firing = n % p.cyl === 0;
-        const halfBank = n % (p.cyl / 2) === 0;
-        let w = firing ? 1 : halfBank ? Math.max(p.uneven, 0.12) * 0.8 : p.uneven * (n < p.cyl ? 0.9 : 0.45);
-        const roll = Math.exp(-n / (p.cyl * (2 + 6 * p.bright))) / Math.pow(n, 0.35);
-        const amp = w * roll * (0.85 + 0.3 * rand());
-        // phases partiellement alignées : impulsions d'échappement marquées
-        const ph = rand() * Math.PI * (1 - 0.6 * p.bright);
-        real[n] = amp * Math.cos(ph);
-        imag[n] = amp * Math.sin(ph);
+        const w = n % cyl === 0 ? 1 : uneven * (n < cyl ? 0.9 : 0.45);
+        const amp = w * Math.exp(-n / (cyl * (2 + 6 * bright))) / Math.pow(n, 0.35) * (0.85 + 0.3 * rand());
+        const ph = rand() * Math.PI * (1 - 0.6 * bright);
+        real[n] = amp * Math.cos(ph); imag[n] = amp * Math.sin(ph);
       }
       return ctx.createPeriodicWave(real, imag);
     }
 
-    function makeCurve(k) {
-      const n = 2048, c = new Float32Array(n);
-      for (let i = 0; i < n; i++) {
-        const x = (i / (n - 1)) * 2 - 1;
-        c[i] = Math.tanh(k * x) / Math.tanh(k);
+    class LegacySynth {
+      constructor(ctx, out) {
+        this.ctx = ctx;
+        this.handlesEffects = false;
+        this.osc1 = ctx.createOscillator();
+        this.osc2 = ctx.createOscillator(); this.osc2.detune.value = 7;
+        this.drive = ctx.createGain();
+        this.shaper = ctx.createWaveShaper();
+        const curve = new Float32Array(2048);
+        for (let i = 0; i < 2048; i++) { const x = (i / 2047) * 2 - 1; curve[i] = Math.tanh(2 * x) / Math.tanh(2); }
+        this.shaper.curve = curve;
+        this.tone = ctx.createBiquadFilter(); this.tone.type = 'lowpass'; this.tone.Q.value = 1.2;
+        this.body = ctx.createGain(); this.body.gain.value = 0.5;
+        const g2 = ctx.createGain(); g2.gain.value = 0.5;
+        this.osc1.connect(this.drive); this.osc2.connect(g2).connect(this.drive);
+        this.drive.connect(this.shaper).connect(this.tone).connect(this.body).connect(out);
+        this.osc1.start(); this.osc2.start();
       }
-      return c;
+      setProfile(p) {
+        this.p = p;
+        // nombre d'impulsions par cycle de 720° et irrégularité des intervalles
+        const cyl = p.fire.length;
+        const gaps = p.fire.map((a, i) => ((p.fire[(i + 1) % cyl] - a + 720) % 720) || 720);
+        const uneven = Math.min(0.6, (Math.max(...gaps) - Math.min(...gaps)) / 720 + (p.bank.some((b) => b) && cyl === 8 && p.bank[1] === p.bank[2] ? 0.5 : 0.08));
+        const wave = buildWave(this.ctx, cyl, uneven, Math.min(1, p.muffler / 3000));
+        this.osc1.setPeriodicWave(wave); this.osc2.setPeriodicWave(wave);
+        this.cyl = cyl;
+      }
+      update(rpm, load, cut) {
+        const t = this.ctx.currentTime, f = rpm / 120;
+        this.osc1.frequency.setTargetAtTime(f, t, 0.04);
+        this.osc2.frequency.setTargetAtTime(f, t, 0.04);
+        this.drive.gain.setTargetAtTime(cut ? 0.25 : 0.35 + 0.9 * load, t, 0.03);
+        this.tone.frequency.setTargetAtTime(Math.min(9000, 220 + f * this.cyl * 2.5 * (0.55 + 0.75 * load)), t, 0.05);
+      }
+      dispose() { try { this.osc1.stop(); this.osc2.stop(); } catch { /* ignoré */ } this.body.disconnect(); }
     }
 
-    class EngineSynth {
+    // ===================================================================
+    //  Chaîne de sortie commune
+    // ===================================================================
+    class AudioEngine {
       constructor() {
         const ctx = (this.ctx = new (window.AudioContext || window.webkitAudioContext)());
         this.master = ctx.createGain();
         this.master.gain.value = 0;
-        const comp = ctx.createDynamicsCompressor();
-        comp.threshold.value = -14; comp.ratio.value = 4; comp.attack.value = 0.005; comp.release.value = 0.2;
         const hp = ctx.createBiquadFilter();
         hp.type = 'highpass'; hp.frequency.value = 28; // protège les haut-parleurs
-        this.master.connect(hp).connect(comp).connect(ctx.destination);
-
-        // Bloc moteur : deux oscillateurs légèrement désaccordés -> saturation -> passe-bas
-        this.osc1 = ctx.createOscillator();
-        this.osc2 = ctx.createOscillator();
-        this.osc2.detune.value = 7;
-        const g1 = ctx.createGain(); g1.gain.value = 0.7;
-        const g2 = ctx.createGain(); g2.gain.value = 0.35;
-        this.drive = ctx.createGain();
-        this.shaper = ctx.createWaveShaper();
-        this.shaper.oversample = '2x';
-        this.tone = ctx.createBiquadFilter();
-        this.tone.type = 'lowpass'; this.tone.Q.value = 1.2;
-        this.body = ctx.createGain(); this.body.gain.value = 0.5;
-        this.osc1.connect(g1).connect(this.drive);
-        this.osc2.connect(g2).connect(this.drive);
-        this.drive.connect(this.shaper).connect(this.tone).connect(this.body).connect(this.master);
-
-        // Souffle admission / échappement : bruit filtré, suit la charge
-        const noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-        const d = noiseBuf.getChannelData(0);
-        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-        this.noiseBuf = noiseBuf;
-        this.noise = ctx.createBufferSource();
-        this.noise.buffer = noiseBuf; this.noise.loop = true;
-        this.breath = ctx.createBiquadFilter();
-        this.breath.type = 'bandpass'; this.breath.Q.value = 0.9;
-        this.breathGain = ctx.createGain(); this.breathGain.gain.value = 0;
-        this.noise.connect(this.breath).connect(this.breathGain).connect(this.master);
-
-        // Sifflement de turbo
-        this.turbo = ctx.createOscillator();
-        this.turbo.type = 'sine';
-        this.turboGain = ctx.createGain(); this.turboGain.gain.value = 0;
-        this.turbo.connect(this.turboGain).connect(this.master);
-
-        // Pétarades : bus dédié
-        this.popBus = ctx.createBiquadFilter();
-        this.popBus.type = 'bandpass'; this.popBus.frequency.value = 1400; this.popBus.Q.value = 0.7;
-        this.popBus.connect(this.master);
-
-        [this.osc1, this.osc2, this.noise, this.turbo].forEach((n) => n.start());
+        const comp = ctx.createDynamicsCompressor();
+        comp.threshold.value = -16; comp.ratio.value = 4; comp.attack.value = 0.004; comp.release.value = 0.2;
+        this.bus = ctx.createGain(); // entrée des moteurs
+        this.bus.connect(hp).connect(comp).connect(this.master).connect(ctx.destination);
+        this.voice = null;
+        this.kind = null;
       }
-
-      setProfile(p) {
-        this.p = p;
-        const wave = buildWave(this.ctx, p);
-        this.osc1.setPeriodicWave(wave);
-        this.osc2.setPeriodicWave(wave);
-        this.shaper.curve = makeCurve(p.grit);
+      async use(profileId) {
+        const p = profileOf(profileId);
+        let voice;
+        if (profileId === CUSTOM_ID) {
+          voice = new SampleSynth(this.ctx, this.bus, customSamples);
+          this.kind = 'samples';
+        } else if (this.kind === 'physical' || this.kind === 'legacy') {
+          voice = this.voice instanceof SampleSynth ? null : this.voice;
+        }
+        if (!voice) {
+          try {
+            if (!this.ctx.audioWorklet) throw new Error('AudioWorklet absent');
+            voice = await PhysicalSynth.create(this.ctx, this.bus);
+            this.kind = 'physical';
+          } catch {
+            voice = new LegacySynth(this.ctx, this.bus);
+            this.kind = 'legacy';
+          }
+        }
+        if (voice !== this.voice) { this.voice?.dispose(); this.voice = voice; }
+        voice.setProfile(p);
       }
-
       setVolume(v, ramp = 0.15) {
         const t = this.ctx.currentTime;
         this.master.gain.cancelScheduledValues(t);
         this.master.gain.setTargetAtTime(v, t, ramp);
       }
-
-      update(rpm, load, cut) {
-        const p = this.p, t = this.ctx.currentTime, k = 0.04;
-        const cycleHz = rpm / 120;
-        const span = (rpm - p.idle) / (p.redline - p.idle);
-        this.osc1.frequency.setTargetAtTime(cycleHz, t, k);
-        this.osc2.frequency.setTargetAtTime(cycleHz, t, k);
-        const drive = cut ? 0.25 : 0.35 + 0.9 * load + 0.25 * span;
-        this.drive.gain.setTargetAtTime(drive, t, 0.03);
-        const cutoff = 220 + cycleHz * p.cyl * (1.2 + 2.2 * p.bright) * (0.55 + 0.75 * load);
-        this.tone.frequency.setTargetAtTime(Math.min(cutoff, 9000), t, 0.05);
-        this.body.gain.setTargetAtTime(cut ? 0.18 : 0.42 + 0.25 * load, t, 0.03);
-        this.breath.frequency.setTargetAtTime(Math.min(cycleHz * p.cyl * 2.5, 6000), t, 0.05);
-        this.breathGain.gain.setTargetAtTime(0.02 + 0.12 * load * (0.4 + span), t, 0.08);
-        if (p.turbo) {
-          const boost = Math.max(0, span - 0.15) * load;
-          this.turbo.frequency.setTargetAtTime(2200 + 5200 * span, t, 0.25);
-          this.turboGain.gain.setTargetAtTime(0.03 * p.turbo * boost, t, 0.3);
-        } else {
-          this.turboGain.gain.setTargetAtTime(0, t, 0.1);
-        }
-      }
-
-      pop(strength = 1) {
-        const ctx = this.ctx, t = ctx.currentTime;
-        const src = ctx.createBufferSource();
-        src.buffer = this.noiseBuf;
-        const g = ctx.createGain();
-        const amp = 0.35 * strength * (0.5 + Math.random() * 0.5);
-        g.gain.setValueAtTime(amp, t);
-        g.gain.exponentialRampToValueAtTime(0.0008, t + 0.02 + Math.random() * 0.05);
-        src.connect(g).connect(this.popBus);
-        src.start(t, Math.random() * 1.5, 0.1);
-      }
-
-      blowOff() {
-        const ctx = this.ctx, t = ctx.currentTime;
-        const src = ctx.createBufferSource();
-        src.buffer = this.noiseBuf;
-        const f = ctx.createBiquadFilter();
-        f.type = 'bandpass'; f.Q.value = 2;
-        f.frequency.setValueAtTime(3500, t);
-        f.frequency.exponentialRampToValueAtTime(900, t + 0.45);
-        const g = ctx.createGain();
-        g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(0.12 * this.p.turbo, t + 0.03);
-        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.5);
-        src.connect(f).connect(g).connect(this.master);
-        src.start(t, Math.random(), 0.6);
-      }
-
-      async close() {
-        try { await this.ctx.close(); } catch { /* déjà fermé */ }
-      }
+      update(rpm, load, cut) { this.voice?.update(rpm, load, cut); }
+      async close() { try { this.voice?.dispose(); await this.ctx.close(); } catch { /* déjà fermé */ } }
     }
 
-    // ------------------------------------------------------ boîte de vitesses ---
+    // ===================================================================
+    //  Boîte de vitesses
+    // ===================================================================
     const sim = {
-      targetSpeed: 0,   // km/h, dernière valeur de la source
-      speed: 0,         // km/h, lissée
-      accel: 0,         // m/s², lissée
-      gear: 0,          // index du rapport
-      rpm: 0,
-      load: 0,
-      cutUntil: 0,      // coupure d'allumage pendant un passage de rapport
-      shiftAt: 0,       // horodatage du dernier passage (évite les cascades)
-      wasLoaded: false,
-      nextPop: 0,
+      targetSpeed: 0, speed: 0, accel: 0, gear: 0, rpm: 0, load: 0,
+      cutUntil: 0, shiftAt: 0,
     };
 
-    function rpmFor(p, speed, gear) {
-      return (speed / p.gears[gear]) * 1000;
-    }
+    const rpmFor = (p, speed, gear) => (speed / p.gears[gear]) * 1000;
 
     function step(dt, now) {
-      const p = PROFILES[settings.profile];
+      const p = profileOf(settings.profile);
       const prev = sim.speed;
       // GPS ~1 Hz : lissage pour éviter les marches d'escalier
       const tau = settings.source === 'gps' ? 0.9 : 0.12;
@@ -541,7 +901,6 @@
       else load = sim.speed > 2 ? 0.22 : 0.08;
       sim.load += (load - sim.load) * (1 - Math.exp(-dt / 0.15));
 
-      // passages de rapport
       const last = p.gears.length - 1;
       const upAt = p.idle + (p.redline - p.idle) * (0.38 + 0.55 * sim.load);
       const downAt = p.idle * 1.25 + (p.redline - p.idle) * 0.18 * sim.load;
@@ -552,7 +911,6 @@
         sim.gear++;
         sim.shiftAt = now;
         sim.cutUntil = now + 90 + 60 * (1 - sim.load);
-        if (p.crackle && sim.load > 0.6 && Math.random() < p.crackle) engine?.pop(1.2);
       } else if (canShift && sim.gear > 0 && rpmFor(p, sim.speed, sim.gear) < downAt) {
         sim.gear--;
         sim.shiftAt = now;
@@ -563,29 +921,16 @@
       const clutch = p.idle + (p.launch - p.idle) * sim.load;
       if (rpm < clutch) rpm = clutch + (rpm - clutch) * Math.min(1, sim.speed / 12);
       rpm = Math.max(p.idle, Math.min(p.redline, rpm));
-      // ralenti irrégulier sur les moteurs déséquilibrés
-      rpm *= 1 + (Math.random() - 0.5) * 0.02 * (0.3 + p.uneven) * (sim.speed < 2 ? 1 : 0.2);
       sim.rpm += (rpm - sim.rpm) * (1 - Math.exp(-dt / 0.06));
 
       const cut = now < sim.cutUntil;
-      if (engine) {
-        engine.update(sim.rpm, cut ? 0 : sim.load, cut);
-        // lever de pied : pétarades et décharge de turbo
-        const lifting = sim.accel < -0.4 && sim.rpm > p.idle * 1.6;
-        if (sim.wasLoaded && lifting && p.turbo) engine.blowOff();
-        if (lifting && p.crackle && now > sim.nextPop) {
-          if (Math.random() < p.crackle * 0.6) engine.pop((sim.rpm / p.redline) * 1.1);
-          sim.nextPop = now + 50 + Math.random() * 220;
-        }
-        if (sim.load > 0.55) sim.wasLoaded = true;
-        else if (lifting) sim.wasLoaded = false;
-      }
+      engine?.update(sim.rpm, cut ? 0 : sim.load, cut);
     }
 
-    // --------------------------------------------------------- sources vitesse ---
-    let geoWatch = null;
-    let lastFix = null;
-    let lastFixAt = 0;
+    // ===================================================================
+    //  Sources de vitesse
+    // ===================================================================
+    let geoWatch = null, lastFix = null, lastFixAt = 0;
 
     function haversine(a, b) {
       const R = 6371000, rad = Math.PI / 180;
@@ -620,10 +965,9 @@
           setStatus(`GPS actif · précision ±${Math.round(c.accuracy)} m`);
         },
         (err) => {
-          const msg = err.code === 1
+          setStatus(err.code === 1
             ? 'Localisation refusée. Autorisez-la pour ce site dans le navigateur, ou passez en mode Démo.'
-            : 'Signal GPS indisponible pour le moment. Le moteur reste au ralenti.';
-          setStatus(msg, true);
+            : 'Signal GPS indisponible pour le moment. Le moteur reste au ralenti.', true);
         },
         { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
       );
@@ -635,19 +979,129 @@
       lastFix = null;
     }
 
-    // Pédale virtuelle : physique simplifiée (poussée décroissante + traînée)
+    // Pédale virtuelle : poussée décroissante + traînée
     let pedalDown = false;
     function demoStep(dt) {
-      const v = sim.targetSpeed / 3.6; // m/s
+      const v = sim.targetSpeed / 3.6;
       const accel = pedalDown ? 5.5 * (1 - v / 75) : -(0.6 + 0.0009 * v * v + (v > 0 ? 0.4 : 0));
       sim.targetSpeed = Math.max(0, (v + accel * dt) * 3.6);
     }
 
-    // ---------------------------------------------------------------- boucle ---
-    let engine = null;
-    let running = false;
-    let lastT = 0;
-    let wakeLock = null;
+    // ===================================================================
+    //  Enregistrements importés (IndexedDB)
+    // ===================================================================
+    const DB_NAME = 'xpeng-engine-sound', DB_STORE = 'banks', BANK_KEY = 'custom';
+    const MAX_BYTES = 80 * 1024 * 1024;
+    let customRaw = null;      // [{ name, rpm, layer, data: ArrayBuffer }]
+    let customSamples = [];    // décodés pour le contexte audio courant
+
+    function idb(mode, fn) {
+      return new Promise((resolve, reject) => {
+        let req;
+        try { req = indexedDB.open(DB_NAME, 1); } catch (e) { reject(e); return; }
+        req.onupgradeneeded = () => req.result.createObjectStore(DB_STORE);
+        req.onerror = () => reject(req.error);
+        req.onsuccess = () => {
+          const db = req.result;
+          const tx = db.transaction(DB_STORE, mode);
+          const r = fn(tx.objectStore(DB_STORE));
+          tx.oncomplete = () => { db.close(); resolve(r?.result); };
+          tx.onerror = () => { db.close(); reject(tx.error); };
+        };
+      });
+    }
+
+    function parseName(name) {
+      const base = name.replace(/\.[^.]+$/, '');
+      const nums = (base.match(/\d{3,5}/g) || []).map(Number).filter((n) => n >= 300 && n <= 20000);
+      return { rpm: nums[0] || null, layer: /(^|[^a-z])(off|decel|coast|lift)/i.test(base) ? 'off' : 'on' };
+    }
+
+    function describeBank(raw) {
+      const on = raw.filter((s) => s.layer === 'on').length, off = raw.length - on;
+      const rpms = raw.map((s) => s.rpm);
+      return `${raw.length} fichier(s) · ${Math.min(...rpms)}–${Math.max(...rpms)} tr/min` +
+        (off ? ` · ${on} en charge, ${off} pied levé` : '');
+    }
+
+    function applyCustomRange() {
+      if (!customRaw?.length) return;
+      const rpms = customRaw.map((s) => s.rpm);
+      const lo = Math.max(500, Math.min(...rpms)), hi = Math.max(lo + 1500, Math.max(...rpms));
+      customProfile.idle = lo;
+      customProfile.redline = hi;
+      customProfile.launch = lo + (hi - lo) * 0.3;
+      const scale = 6800 / hi; // même démultiplication qu'un V8 calé sur cette zone rouge
+      customProfile.gears = PROFILES.v8x.gears.map((g) => g * scale);
+    }
+
+    async function decodeCustom(ctx) {
+      customSamples = [];
+      for (const s of customRaw || []) {
+        try {
+          const buffer = await ctx.decodeAudioData(s.data.slice(0));
+          customSamples.push({ rpm: s.rpm, layer: s.layer, buffer });
+        } catch { /* fichier illisible par ce navigateur : ignoré */ }
+      }
+      return customSamples.length;
+    }
+
+    async function importFiles(files) {
+      const list = [...files];
+      if (!list.length) return;
+      const accepted = [], skipped = [];
+      let total = 0;
+      for (const f of list) {
+        let { rpm, layer } = parseName(f.name);
+        if (!rpm && list.length === 1) rpm = 1000; // un seul fichier : référence arbitraire
+        if (!rpm) { skipped.push(f.name); continue; }
+        total += f.size;
+        if (total > MAX_BYTES) { skipped.push(f.name); continue; }
+        accepted.push({ name: f.name, rpm, layer, data: await f.arrayBuffer() });
+      }
+      if (!accepted.length) {
+        setCustomStatus('Aucun fichier retenu : indiquez le régime dans le nom (ex. 3000.wav).', true);
+        return;
+      }
+      // vérifie que le navigateur sait décoder au moins un fichier
+      const probe = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 1, 44100);
+      let ok = 0;
+      for (const s of accepted) { try { await probe.decodeAudioData(s.data.slice(0)); ok++; } catch { skipped.push(s.name); s.bad = true; } }
+      const good = accepted.filter((s) => !s.bad);
+      if (!ok) { setCustomStatus('Format audio non pris en charge par ce navigateur.', true); return; }
+      customRaw = good;
+      try { await idb('readwrite', (st) => st.put(customRaw, BANK_KEY)); } catch { /* conservé pour cette session seulement */ }
+      applyCustomRange();
+      setCustomStatus(describeBank(customRaw) + (skipped.length ? ` · ignorés : ${skipped.join(', ')}` : ''), skipped.length > 0);
+      selectProfile(CUSTOM_ID);
+    }
+
+    async function loadCustom() {
+      try {
+        const raw = await idb('readonly', (st) => st.get(BANK_KEY));
+        if (Array.isArray(raw) && raw.length) {
+          customRaw = raw;
+          applyCustomRange();
+          setCustomStatus(describeBank(raw));
+        }
+      } catch { /* IndexedDB indisponible */ }
+      if (!customRaw && settings.profile === CUSTOM_ID) settings.profile = 'v8x';
+      renderProfiles();
+    }
+
+    async function clearCustom() {
+      try { await idb('readwrite', (st) => st.delete(BANK_KEY)); } catch { /* ignoré */ }
+      customRaw = null;
+      customSamples = [];
+      setCustomStatus('Enregistrements supprimés.');
+      if (settings.profile === CUSTOM_ID) selectProfile('v8x');
+      else renderProfiles();
+    }
+
+    // ===================================================================
+    //  Boucle et cycle de vie
+    // ===================================================================
+    let engine = null, running = false, lastT = 0, wakeLock = null;
 
     function frame(t) {
       if (!running) return;
@@ -655,7 +1109,7 @@
       lastT = t;
       if (settings.source === 'demo') demoStep(dt);
       else if (lastFixAt && t - lastFixAt > 8000) {
-        // plus de position depuis 8 s : on redescend doucement au ralenti
+        // plus de position depuis 8 s : retour progressif au ralenti
         sim.targetSpeed = Math.max(0, sim.targetSpeed - 20 * dt);
       }
       step(dt, t);
@@ -664,7 +1118,7 @@
     }
 
     function render() {
-      const p = PROFILES[settings.profile];
+      const p = profileOf(settings.profile);
       el.speed.textContent = Math.round(sim.speed);
       el.gear.textContent = sim.speed === 0 && sim.load < 0.2 ? 'N' : String(sim.gear + 1);
       el.rpmText.textContent = `${Math.round(sim.rpm / 50) * 50} tr/min`;
@@ -673,22 +1127,29 @@
     }
 
     async function requestWakeLock() {
-      try {
-        if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
-      } catch { /* non supporté ou refusé : sans importance */ }
+      try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch { /* ignoré */ }
     }
 
     async function start() {
+      el.start.disabled = true;
       try {
-        engine = new EngineSynth();
+        engine = new AudioEngine();
         if (engine.ctx.state === 'suspended') await engine.ctx.resume();
+        if (settings.profile === CUSTOM_ID) {
+          if (!customRaw || !(await decodeCustom(engine.ctx))) settings.profile = 'v8x';
+        }
+        await engine.use(settings.profile);
       } catch {
-        setStatus("Ce navigateur ne permet pas la synthèse audio (Web Audio API absente).", true);
+        setStatus('Ce navigateur ne permet pas la synthèse audio (Web Audio API absente).', true);
         engine = null;
+        el.start.disabled = false;
         return;
       }
-      engine.setProfile(PROFILES[settings.profile]);
-      sim.rpm = PROFILES[settings.profile].idle;
+      el.start.disabled = false;
+      renderProfiles();
+      const p = profileOf(settings.profile);
+      drawGauge(p);
+      sim.rpm = p.idle;
       engine.update(sim.rpm, 0, false);
       engine.setVolume(settings.volume / 100, 0.4); // fondu d'entrée = démarreur doux
       running = true;
@@ -697,6 +1158,7 @@
       el.start.classList.add('running');
       if (settings.source === 'gps') startGps();
       else setStatus('Mode Démo · maintenez la pédale pour accélérer.');
+      if (engine.kind === 'legacy') setStatus('Mode compatibilité : servez le Media Hub en HTTPS pour le son réaliste.', true);
       requestWakeLock();
       requestAnimationFrame(frame);
     }
@@ -724,27 +1186,52 @@
       el.status.textContent = text;
       el.status.classList.toggle('warn', warn);
     }
+    function setCustomStatus(text, warn = false) {
+      el.customStatus.textContent = text;
+      el.customStatus.classList.toggle('warn', warn);
+    }
 
-    // -------------------------------------------------------------- interface ---
+    // ===================================================================
+    //  Interface
+    // ===================================================================
+    async function selectProfile(id) {
+      if (id === CUSTOM_ID && !customRaw) return;
+      settings.profile = id;
+      save();
+      renderProfiles();
+      const p = profileOf(id);
+      drawGauge(p);
+      if (engine) {
+        if (id === CUSTOM_ID) await decodeCustom(engine.ctx);
+        await engine.use(id);
+        sim.gear = Math.min(sim.gear, p.gears.length - 1);
+      }
+    }
+
     function renderProfiles() {
       el.profiles.innerHTML = '';
-      for (const [id, p] of Object.entries(PROFILES)) {
+      const entries = Object.entries(PROFILES);
+      if (customRaw) entries.push([CUSTOM_ID, customProfile]);
+      let fam = null, grid = null;
+      for (const [id, p] of entries) {
+        if (p.fam !== fam) {
+          fam = p.fam;
+          const h = document.createElement('div');
+          h.className = 'family';
+          h.textContent = fam;
+          grid = document.createElement('div');
+          grid.className = 'profiles';
+          el.profiles.append(h, grid);
+        }
         const b = document.createElement('button');
         b.className = 'chip';
+        b.dataset.id = id;
         b.setAttribute('aria-pressed', String(id === settings.profile));
         b.innerHTML = `${p.label}<small>${p.sub}</small>`;
-        b.addEventListener('click', () => {
-          settings.profile = id;
-          save();
-          renderProfiles();
-          drawGauge(p);
-          if (engine) {
-            engine.setProfile(p);
-            sim.gear = Math.min(sim.gear, p.gears.length - 1);
-          }
-        });
-        el.profiles.appendChild(b);
+        b.addEventListener('click', () => selectProfile(id));
+        grid.appendChild(b);
       }
+      el.clearCustom.disabled = !customRaw;
     }
 
     function setSource(src) {
@@ -771,6 +1258,13 @@
     });
 
     el.start.addEventListener('click', () => (running ? stop() : start()));
+    el.importFiles.addEventListener('change', async () => {
+      setCustomStatus('Import en cours…');
+      try { await importFiles(el.importFiles.files); }
+      catch { setCustomStatus("L'import a échoué.", true); }
+      el.importFiles.value = '';
+    });
+    el.clearCustom.addEventListener('click', clearCustom);
 
     const press = (down) => (e) => {
       e.preventDefault();
@@ -786,10 +1280,11 @@
     });
 
     renderProfiles();
-    drawGauge(PROFILES[settings.profile]);
+    drawGauge(profileOf(settings.profile));
     setSource(settings.source);
     render();
     el.rpmText.textContent = '— tr/min';
+    loadCustom();
   })();
   </script>
 </body>
